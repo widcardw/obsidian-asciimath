@@ -1,3 +1,4 @@
 npm node_modules
 build
 *.json
+main.js

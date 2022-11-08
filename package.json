@@ -14,6 +14,9 @@
   "license": "MIT",
   "devDependencies": {
     "@antfu/eslint-config": "^0.29.4",
+    "@codemirror/language": "^6.3.0",
+    "@codemirror/state": "^6.1.2",
+    "@codemirror/view": "^6.4.1",
     "@types/node": "^16.11.6",
     "@typescript-eslint/eslint-plugin": "5.29.0",
     "@typescript-eslint/parser": "5.29.0",

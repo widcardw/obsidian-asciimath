@@ -6,15 +6,18 @@ import type {
   MarkdownView,
 } from 'obsidian'
 import {
+  MarkdownPreviewRenderer,
   Plugin,
   PluginSettingTab,
   Setting,
+  finishRenderMath,
   loadMathJax,
   renderMath,
 } from 'obsidian'
 
 // @ts-expect-error type declaration
 import AM from 'asciimath-js'
+import { inlinePlugin } from 'inline'
 
 // Remember to rename these classes and interfaces!
 
@@ -29,8 +32,8 @@ interface AsciiMathSettings {
 const DEFAULT_SETTINGS: AsciiMathSettings = {
   blockPrefix: ['asciimath', 'am'],
   inline: {
-    open: '``',
-    close: '``',
+    open: '`$',
+    close: '$`',
   },
 }
 
@@ -44,6 +47,8 @@ export default class AsciiMathPlugin extends Plugin {
 
     await loadMathJax()
 
+    AM.init()
+
     // @ts-expect-error MathJax name not found
     if (!MathJax) {
       console.warn('MathJax was not defined despite loading it.')
@@ -55,9 +60,13 @@ export default class AsciiMathPlugin extends Plugin {
     this.app.workspace.onLayoutReady(async () => {
       this.settings.blockPrefix.forEach((prefix) => {
         // console.log(prefix)
-        this.registerType(prefix)
+        this.registerAsciiMathBlock(prefix)
       })
     })
+
+    this.registerEditorExtension([inlinePlugin(this)])
+    // this.postProcessors.set('__ascii_math__i_inline', this.postProcessorInline.bind(this))
+    // this.registerMarkdownPostProcessor(this.postProcessorInline.bind(this))
 
     // This adds an editor command that can perform some operation on the current editor instance
     this.addCommand({
@@ -79,7 +88,7 @@ export default class AsciiMathPlugin extends Plugin {
     console.log('Obsidian asciimath loaded')
   }
 
-  registerType(prefix: string) {
+  registerAsciiMathBlock(prefix: string) {
     this.postProcessors.set(
       prefix,
       this.registerMarkdownCodeBlockProcessor(
@@ -89,6 +98,13 @@ export default class AsciiMathPlugin extends Plugin {
     )
   }
 
+  // async postProcessorInline(el: HTMLElement, ctx: MarkdownPostProcessorContext) {
+  //   const nodeList = el.querySelectorAll('code')
+  //   if (!nodeList.length)
+  //     return
+  //   console.log(nodeList)
+  // }
+
   postProcessor(
     prefix: string,
     src: string,
@@ -97,17 +113,26 @@ export default class AsciiMathPlugin extends Plugin {
   ) {
     const tex = AM.am2tex(src)
 
-    console.log(AM, tex)
-
     const mathEl = renderMath(tex, true)
 
     el.appendChild(mathEl)
+
+    finishRenderMath()
   }
 
   onunload() {
     // eslint-disable-next-line no-console
     console.log('Obsidian asciimath unloaded')
     // this.postProcessors = null
+    this.unregister()
+  }
+
+  unregister() {
+    this.postProcessors.forEach((value) => {
+      MarkdownPreviewRenderer.unregisterPostProcessor(value)
+    })
+    // @ts-expect-error
+    this.postProcessors = null
   }
 
   async loadSettings() {
@@ -143,13 +168,13 @@ class AsciiMathSettingTab extends PluginSettingTab {
         .onChange(async (value) => {
           // // eslint-disable-next-line no-console
           // console.log(value)
-          this.plugin.settings.blockPrefix = value.split(',').map(s => s.trim()).filter(Boolean)
+          this.plugin.settings.blockPrefix = value.split(',').filter(Boolean).map(s => s.trim()).filter(Boolean)
           await this.plugin.saveSettings()
         }))
 
     new Setting(containerEl)
       .setName('Inline asciimath start')
-      .setDesc('The leading of the inline asciimath formula.')
+      .setDesc('The leading escape of the inline asciimath formula. Currently only support `$')
       .addText(text => text
         .setPlaceholder('Enter your secret')
         .setValue(this.plugin.settings.inline.open)
@@ -162,7 +187,7 @@ class AsciiMathSettingTab extends PluginSettingTab {
 
     new Setting(containerEl)
       .setName('Inline asciimath end')
-      .setDesc('The trailing of the inline asciimath formula.')
+      .setDesc('The trailing escape of the inline asciimath formula. Currently only support $`')
       .addText(text => text
         .setPlaceholder('Enter your secret')
         .setValue(this.plugin.settings.inline.close)
