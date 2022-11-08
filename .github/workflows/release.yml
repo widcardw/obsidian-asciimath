@@ -36,7 +36,7 @@ jobs:
 
       - name: Install dependencies and build
         run: |
-          npm install
+          pnpm install
           pnpm run build
           mkdir ${{ env.PLUGIN_NAME }}
           cp main.js manifest.json ${{ env.PLUGIN_NAME }}
