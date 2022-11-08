@@ -5,6 +5,9 @@ on:
     tags:
       - '*'
 
+env:
+  PLUGIN_NAME: obsidian-asciimath
+
 jobs:
   release-plugin:
     runs-on: ubuntu-latest
