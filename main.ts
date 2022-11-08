@@ -57,6 +57,7 @@ export default class AsciiMathPlugin extends Plugin {
 
     this.postProcessors = new Map()
 
+    // register code block processors
     this.app.workspace.onLayoutReady(async () => {
       this.settings.blockPrefix.forEach((prefix) => {
         // console.log(prefix)
@@ -64,9 +65,11 @@ export default class AsciiMathPlugin extends Plugin {
       })
     })
 
+    // register processor in live preview mode
     this.registerEditorExtension([inlinePlugin(this)])
-    // this.postProcessors.set('__ascii_math__i_inline', this.postProcessorInline.bind(this))
-    // this.registerMarkdownPostProcessor(this.postProcessorInline.bind(this))
+
+    // register processor in reading mode
+    this.registerMarkdownPostProcessor(this.postProcessorInline.bind(this))
 
     // This adds an editor command that can perform some operation on the current editor instance
     this.addCommand({
@@ -98,12 +101,24 @@ export default class AsciiMathPlugin extends Plugin {
     )
   }
 
-  // async postProcessorInline(el: HTMLElement, ctx: MarkdownPostProcessorContext) {
-  //   const nodeList = el.querySelectorAll('code')
-  //   if (!nodeList.length)
-  //     return
-  //   console.log(nodeList)
-  // }
+  // Process formulas in reading mode
+  async postProcessorInline(el: HTMLElement, ctx: MarkdownPostProcessorContext) {
+    const nodeList = el.querySelectorAll('code')
+    if (!nodeList.length)
+      return
+    for (let i = 0; i < nodeList.length; i++) {
+      const node = nodeList.item(i)
+      if (node.className.trim())
+        continue
+      const matches = node.innerText.match(/^\$(.*?)\$$/)
+      if (!matches)
+        continue
+      const tex = AM.am2tex(matches[1])
+      const mathEl = renderMath(tex, false)
+      finishRenderMath()
+      node.replaceWith(mathEl)
+    }
+  }
 
   postProcessor(
     prefix: string,
