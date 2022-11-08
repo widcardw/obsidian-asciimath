@@ -1,0 +1,28 @@
+{
+  "name": "obsidian-asciimath",
+  "version": "1.0.0",
+  "description": "Add asciimath support for Obsidian.",
+  "main": "main.js",
+  "scripts": {
+    "dev": "node esbuild.config.mjs",
+    "build": "tsc -noEmit -skipLibCheck && node esbuild.config.mjs production",
+    "version": "node version-bump.mjs && git add manifest.json versions.json",
+    "lint": "eslint ."
+  },
+  "keywords": [],
+  "author": "",
+  "license": "MIT",
+  "devDependencies": {
+    "@antfu/eslint-config": "^0.29.4",
+    "@types/node": "^16.11.6",
+    "@typescript-eslint/eslint-plugin": "5.29.0",
+    "@typescript-eslint/parser": "5.29.0",
+    "asciimath-js": "^1.1.1",
+    "builtin-modules": "3.3.0",
+    "esbuild": "0.14.47",
+    "eslint": "^8.27.0",
+    "obsidian": "latest",
+    "tslib": "2.4.0",
+    "typescript": "4.7.4"
+  }
+}
