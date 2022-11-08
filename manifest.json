@@ -1,10 +1,10 @@
 {
-  "id": "obsidian-asciimath",
-  "name": "Obsidian asciimath",
-  "version": "0.0.0",
-  "minAppVersion": "0.15.0",
-  "description": "Add asciimath support for Obsidian.",
-  "author": "widcardw",
-  "authorUrl": "https://widcard.win",
-  "isDesktopOnly": false
+	"id": "obsidian-asciimath",
+	"name": "Obsidian asciimath",
+	"version": "0.1.0",
+	"minAppVersion": "0.15.0",
+	"description": "Add asciimath support for Obsidian.",
+	"author": "widcardw",
+	"authorUrl": "https://widcard.win",
+	"isDesktopOnly": false
 }
