@@ -24,7 +24,7 @@ will be passed into
 
 You can add other prefix alias to the settings.
 
-For more infomation about asciimath, please refer to [asciimath.org](https://asciimath.org) and [zmx0142857's note](https://zmx0142857.github.io/note/).
+For more infomation about asciimath, please refer to [asciimath.org](http://asciimath.org) and [zmx0142857's note](https://zmx0142857.github.io/note/).
 
 #### Inline asciimath
 
