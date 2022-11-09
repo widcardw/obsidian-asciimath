@@ -8,7 +8,7 @@ specifiers:
   '@types/node': ^16.11.6
   '@typescript-eslint/eslint-plugin': 5.29.0
   '@typescript-eslint/parser': 5.29.0
-  asciimath-js: ^1.1.1
+  asciimath-js: ^1.1.2
   builtin-modules: 3.3.0
   esbuild: 0.14.47
   eslint: ^8.27.0
@@ -24,7 +24,7 @@ devDependencies:
   '@types/node': 16.18.3
   '@typescript-eslint/eslint-plugin': 5.29.0_a6kgbgxsk6wvn6uo3776bwszdu
   '@typescript-eslint/parser': 5.29.0_2uhzae5rel2qyw7fhfmxrmdt3q
-  asciimath-js: 1.1.1
+  asciimath-js: 1.1.2
   builtin-modules: 3.3.0
   esbuild: 0.14.47
   eslint: 8.27.0
@@ -611,8 +611,8 @@ packages:
       es-shim-unscopables: 1.0.0
     dev: true
 
-  /asciimath-js/1.1.1:
-    resolution: {integrity: sha512-UwXiUETEoq1jcLB+EC/Ni8zd9BY7D/2RdRay2vbww998OI+U9/J1V3cA2t0lO5j8LucZLE5vRTdjWt4YGpXx5A==}
+  /asciimath-js/1.1.2:
+    resolution: {integrity: sha512-gqWUXU3xhx7Ac0zZrctibfyL+RpplQtCVb3ssWnU1+14r1sob0SXVOX4a7V4fNeYTk+jiYICOmLkcPNcX4yyJw==}
     hasBin: true
     dev: true
 
