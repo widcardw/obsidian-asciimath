@@ -75,7 +75,7 @@ function inlineRender(view: EditorView, plugin: AsciiMathPlugin) {
         // const original = view.state.doc.sliceString(start, end).trim()
         const original = view.state.doc.sliceString(start - open.length, end + close.length).trim()
 
-        const regex2 = new RegExp(`^${open.replace(/([$^\\.()[\]{}|])/, '\\$1')}(.*?)${close.replace(/([$^\\.()[\]{}|])/, '\\$1')}$`)
+        const regex2 = new RegExp(`^${open.replace(/([$^\\.()[\]{}*?|])/, '\\$1')}(.*?)${close.replace(/([$^\\.()[\]{}*?|])/, '\\$1')}$`)
         const matches = original.match(regex2)
         if (!matches)
           return

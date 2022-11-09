@@ -112,7 +112,11 @@ export default class AsciiMathPlugin extends Plugin {
       const node = nodeList.item(i)
       if (node.className.trim())
         continue
-      const matches = node.innerText.match(/^\$(.*?)\$$/)
+      let { open, close } = this.settings.inline
+      open = open.slice(1)
+      close = close.substring(0, close.length - 1)
+      const regex = new RegExp(`^${open.replace(/([$^\\.()[\]{}*?|])/, '\\$1')}(.*?)${close.replace(/([$^\\.()[\]{}*?|])/, '\\$1')}$`)
+      const matches = node.innerText.match(regex)
       if (!matches)
         continue
       const tex = AM.am2tex(matches[1])
@@ -161,6 +165,32 @@ export default class AsciiMathPlugin extends Plugin {
   }
 }
 
+function validateSettings(settings: AsciiMathSettings): { isValid: boolean; message: string } {
+  if (settings.blockPrefix.length < 1) {
+    return {
+      isValid: false,
+      message: 'You should add at least 1 block prefix!',
+    }
+  }
+  const { open, close } = settings.inline
+  if (!open.startsWith('`') || open.length <= 1 || open.startsWith('``')) {
+    return {
+      isValid: false,
+      message: 'Invalid inline leading escape!',
+    }
+  }
+  if (!close.endsWith('`') || close.length <= 1 || close.endsWith('``')) {
+    return {
+      isValid: false,
+      message: 'Invalid inline trailing escape!',
+    }
+  }
+  return {
+    isValid: true,
+    message: 'OK',
+  }
+}
+
 class AsciiMathSettingTab extends PluginSettingTab {
   plugin: AsciiMathPlugin
 
@@ -177,10 +207,10 @@ class AsciiMathSettingTab extends PluginSettingTab {
     containerEl.createEl('h2', { text: 'Settings for asciimath' })
 
     new Setting(containerEl)
-      .setName('Code block prefixes')
-      .setDesc('Seperate different alias with comma.')
+      .setName('Code block prefix aliases')
+      .setDesc('Seperate different aliases with comma.')
       .addText(text => text
-        .setPlaceholder('Enter your secret')
+        .setPlaceholder('asciimath, am')
         .setValue(this.plugin.settings.blockPrefix.join(', '))
         .onChange(async (value) => {
           // // eslint-disable-next-line no-console
@@ -189,46 +219,50 @@ class AsciiMathSettingTab extends PluginSettingTab {
             .filter(Boolean)
             .map(s => s.trim())
             .filter(Boolean)
-          await this.plugin.saveSettings()
+          // await this.plugin.saveSettings()
         }))
 
     new Setting(containerEl)
       .setName('Inline asciimath start')
-      .setDesc('The leading escape of the inline asciimath formula. Currently only support `$')
+      .setDesc('The leading escape of the inline asciimath formula. It should starts with **only one backtick**.')
       .addText(text => text
-        .setPlaceholder('Enter your secret')
+        .setPlaceholder('`$')
         .setValue(this.plugin.settings.inline.open)
-        .setDisabled(true)
         .onChange(async (value) => {
           // // eslint-disable-next-line no-console
           // console.log(value)
           this.plugin.settings.inline.open = value
-          await this.plugin.saveSettings()
+          // await this.plugin.saveSettings()
         }))
 
     new Setting(containerEl)
       .setName('Inline asciimath end')
-      .setDesc('The trailing escape of the inline asciimath formula. Currently only support $`')
+      .setDesc('The trailing escape of the inline asciimath formula. It should ends with **only one backtick**.')
       .addText(text => text
-        .setPlaceholder('Enter your secret')
+        .setPlaceholder('$`')
         .setValue(this.plugin.settings.inline.close)
-        .setDisabled(true)
         .onChange(async (value) => {
           // // eslint-disable-next-line no-console
           // console.log(value)
           this.plugin.settings.inline.close = value
-          await this.plugin.saveSettings()
+          // await this.plugin.saveSettings()
         }))
 
     new Setting(containerEl)
-      .setName('Reload settings')
+      .setName('Don\'t forget to save and reload settings →')
       .addButton(btn => btn
-        .setButtonText('Reload')
+        .setButtonText('Save')
         .onClick(async () => {
-          // await this.plugin.onunload()
+          const valid = validateSettings(this.plugin.settings)
+          if (!valid.isValid) {
+            // eslint-disable-next-line no-new
+            new Notice(valid.message)
+            return
+          }
+          await this.plugin.saveSettings()
           await this.plugin.loadSettings()
           // eslint-disable-next-line no-new
-          new Notice('Asciimath settings reloaded!')
+          new Notice('Asciimath settings reloaded successfully!')
         }))
   }
 }

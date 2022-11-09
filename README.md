@@ -5,7 +5,7 @@
 ## Install
 
 - (Pending, currently not available) Goto Obsidian plugin market, search for `obsidian-asciimath` and install it.
-- (Manually) Goto the [release page](https://github.com/widcardw/obsidian-asciimath/releases/tag/0.1.3), download the zip, unzip it and add it to your plugins folder.
+- (Manually) Goto the [release page](https://github.com/widcardw/obsidian-asciimath/releases), download the zip, unzip it and add it to your plugins folder.
 
 ## Usage
 
@@ -55,7 +55,31 @@ The integral `$int _0 ^oo e^-x dx = 1$`.
 
 You can add other prefix alias of code block in the settings. The default values are `asciimath` and `am`.
 
-However, inline formula **can only** be wrapped with \`\$ and \$\`, and the settings of inline open and close do not work.
+Inline formula **can only** be wrapped with special escapes. Just look at the examples below.
+
+```diff
+- start: ``   !!! invalid !!!
+- end:   ``   !!! invalid !!!
+
+- start: `    !!! invalid !!!
+- end:   `    !!! invalid !!!
+
++ start: `$   √√√  valid  √√√  // default
++ end:   $`   √√√  valid  √√√  // default
+
++ start: `*   √√√  valid  √√√
++ end:   *`   √√√  valid  √√√
+
++ start: `{   √√√  valid  √√√
++ end:   }`   √√√  valid  √√√
+
++ start: `[   √√√  valid  √√√
++ end:   ]`   √√√  valid  √√√
+
+(... any other valid escapes ...)
+```
+
+After changing the settings, **DONT FORGET to hit the "Save" button**.
 
 ## Development
 
