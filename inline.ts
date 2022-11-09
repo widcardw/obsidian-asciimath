@@ -69,7 +69,7 @@ function inlineRender(view: EditorView, plugin: AsciiMathPlugin) {
         // don't continue if current cursor position and inline code node (including formatting
         // symbols) overlap
         const { open, close } = plugin.settings.inline
-        if (selectionAndRangeOverlap(selection, start - open.length, end + close.length))
+        if (selectionAndRangeOverlap(selection, start - open.length + 1, end + close.length - 1))
           return
 
         // const original = view.state.doc.sliceString(start, end).trim()
