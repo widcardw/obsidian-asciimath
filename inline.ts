@@ -3,14 +3,24 @@ import type {
   EditorView,
   ViewUpdate,
 } from '@codemirror/view'
+
 import {
   Decoration,
   ViewPlugin,
   WidgetType,
 } from '@codemirror/view'
-import type { EditorSelection, Range } from '@codemirror/state'
-import { syntaxTree } from '@codemirror/language'
+
+import type {
+  EditorSelection,
+  Range,
+} from '@codemirror/state'
+
+import {
+  syntaxTree,
+} from '@codemirror/language'
+
 import type AsciiMathPlugin from 'main'
+
 import {
   editorLivePreviewField,
   finishRenderMath,
@@ -45,7 +55,7 @@ function inlineRender(view: EditorView, plugin: AsciiMathPlugin) {
     syntaxTree(view.state).iterate({
       from,
       to,
-      enter: ({ node }: { node: any }) => {
+      enter: (node) => {
         const type = node.type
         // markdown formatting symbols
         if (type.name.includes('formatting'))
@@ -58,11 +68,15 @@ function inlineRender(view: EditorView, plugin: AsciiMathPlugin) {
         const end: number = node.to
         // don't continue if current cursor position and inline code node (including formatting
         // symbols) overlap
-        if (selectionAndRangeOverlap(selection, start, end + 1))
+        const { open, close } = plugin.settings.inline
+        if (selectionAndRangeOverlap(selection, start - open.length, end + close.length))
           return
 
-        const original = view.state.doc.sliceString(start, end).trim()
-        const matches = original.match(/^\$(.*?)\$$/)
+        // const original = view.state.doc.sliceString(start, end).trim()
+        const original = view.state.doc.sliceString(start - open.length, end + close.length).trim()
+
+        const regex2 = new RegExp(`^${open.replace(/([$^\\.()[\]{}|])/, '\\$1')}(.*?)${close.replace(/([$^\\.()[\]{}|])/, '\\$1')}$`)
+        const matches = original.match(regex2)
         if (!matches)
           return
 
@@ -109,8 +123,7 @@ function inlinePlugin(plugin: AsciiMathPlugin) {
     class {
       decorations: DecorationSet
       constructor(view: EditorView) {
-        this.decorations
-                  = inlineRender(view, plugin) ?? Decoration.none
+        this.decorations = inlineRender(view, plugin) ?? Decoration.none
       }
 
       update(update: ViewUpdate) {
@@ -121,12 +134,10 @@ function inlinePlugin(plugin: AsciiMathPlugin) {
         }
         if (
           update.docChanged
-                  || update.viewportChanged
-                  || update.selectionSet
-        ) {
-          this.decorations
-                      = inlineRender(update.view, plugin) ?? Decoration.none
-        }
+            || update.viewportChanged
+            || update.selectionSet
+        )
+          this.decorations = inlineRender(update.view, plugin) ?? Decoration.none
       }
     },
     { decorations: v => v.decorations },

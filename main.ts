@@ -7,6 +7,8 @@ import type {
 } from 'obsidian'
 import {
   MarkdownPreviewRenderer,
+
+  Notice,
   Plugin,
   PluginSettingTab,
   Setting,
@@ -121,7 +123,7 @@ export default class AsciiMathPlugin extends Plugin {
   }
 
   postProcessor(
-    prefix: string,
+    _prefix: string,
     src: string,
     el: HTMLElement,
     _?: MarkdownPostProcessorContext,
@@ -183,7 +185,10 @@ class AsciiMathSettingTab extends PluginSettingTab {
         .onChange(async (value) => {
           // // eslint-disable-next-line no-console
           // console.log(value)
-          this.plugin.settings.blockPrefix = value.split(',').filter(Boolean).map(s => s.trim()).filter(Boolean)
+          this.plugin.settings.blockPrefix = value.split(',')
+            .filter(Boolean)
+            .map(s => s.trim())
+            .filter(Boolean)
           await this.plugin.saveSettings()
         }))
 
@@ -193,6 +198,7 @@ class AsciiMathSettingTab extends PluginSettingTab {
       .addText(text => text
         .setPlaceholder('Enter your secret')
         .setValue(this.plugin.settings.inline.open)
+        .setDisabled(true)
         .onChange(async (value) => {
           // // eslint-disable-next-line no-console
           // console.log(value)
@@ -206,11 +212,23 @@ class AsciiMathSettingTab extends PluginSettingTab {
       .addText(text => text
         .setPlaceholder('Enter your secret')
         .setValue(this.plugin.settings.inline.close)
+        .setDisabled(true)
         .onChange(async (value) => {
           // // eslint-disable-next-line no-console
           // console.log(value)
           this.plugin.settings.inline.close = value
           await this.plugin.saveSettings()
+        }))
+
+    new Setting(containerEl)
+      .setName('Reload settings')
+      .addButton(btn => btn
+        .setButtonText('Reload')
+        .onClick(async () => {
+          // await this.plugin.onunload()
+          await this.plugin.loadSettings()
+          // eslint-disable-next-line no-new
+          new Notice('Asciimath settings reloaded!')
         }))
   }
 }
