@@ -5,7 +5,7 @@
 ## Install
 
 - (Pending, currently not available) Goto Obsidian plugin market, search for `obsidian-asciimath` and install it.
-- (Manually) Goto the [release page](https://github.com/widcardw/obsidian-asciimath/releases/tag/0.1.3), download the zip and add it to your plugins folder.
+- (Manually) Goto the [release page](https://github.com/widcardw/obsidian-asciimath/releases/tag/0.1.3), download the zip, unzip it and add it to your plugins folder.
 
 ## Usage
 
