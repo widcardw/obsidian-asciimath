@@ -48,8 +48,10 @@ x & |-> "e"^(2pi "i" x)
 The inline formula should be wrapped with \`\$ and \$\`, that is, you should input the formula like
 
 ```text
-The integral `$int _0 ^oo e^-x dx = 1$`.
+The integral `$int _0^(+oo) "e"^-x dx = 1$`.
 ```
+
+![](screenshots/inline.png)
 
 ## Configuration
 
