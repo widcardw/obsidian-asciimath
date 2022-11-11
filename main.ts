@@ -152,8 +152,7 @@ export default class AsciiMathPlugin extends Plugin {
     this.postProcessors.forEach((value) => {
       MarkdownPreviewRenderer.unregisterPostProcessor(value)
     })
-    // @ts-expect-error
-    this.postProcessors = null
+    this.postProcessors.clear()
   }
 
   async loadSettings() {
