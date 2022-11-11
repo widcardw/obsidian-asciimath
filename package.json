@@ -1,6 +1,6 @@
 {
   "name": "obsidian-asciimath",
-  "version": "0.2.2",
+  "version": "0.2.3",
   "description": "Add asciimath support for Obsidian.",
   "main": "main.js",
   "scripts": {
