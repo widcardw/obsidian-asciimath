@@ -40,7 +40,7 @@ const DEFAULT_SETTINGS: AsciiMathSettings = {
 }
 
 function normalizeEscape(escape: string) {
-  return escape.replace(/([$^\\.()[\]{}*?|])/, '\\$1')
+  return escape.replace(/([$^\\.()[\]{}*?|])/g, '\\$1')
 }
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
