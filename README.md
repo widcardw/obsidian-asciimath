@@ -83,6 +83,14 @@ Inline formula **can only** be wrapped with special escapes. Just look at the ex
 
 After changing the settings, **DONT FORGET to hit the "Save" button**.
 
+## Commands
+
+![](screenshots/out.gif)
+
+#### Insert asciimath codeblock
+
+#### Convert asciimath into mathjax in current file
+
 ## Development
 
 ```sh

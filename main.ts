@@ -39,6 +39,16 @@ const DEFAULT_SETTINGS: AsciiMathSettings = {
   },
 }
 
+function normalizeEscape(escape: string) {
+  return escape.replace(/([$^\\.()[\]{}*?|])/, '\\$1')
+}
+
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+function toTex(am: any, content: string): string {
+  const tex = am.am2tex(content) as string
+  return tex.replace(/(\{|\})(\1+)/g, (...args) => Array(args[2].length + 1).fill(args[1]).join(' '))
+}
+
 export default class AsciiMathPlugin extends Plugin {
   settings: AsciiMathSettings
 
@@ -86,11 +96,51 @@ export default class AsciiMathPlugin extends Plugin {
       },
     })
 
+    this.addCommand({
+      id: 'convert-am-block-into-mathjax-in-current-file',
+      name: 'Convert asciimath block into mathjax in current file',
+      editorCallback: (editor: Editor, view: MarkdownView) => {
+        this.checkAndReplaceCodeBlocks(editor, view)
+      },
+    })
+
     // This adds a settings tab so the user can configure various aspects of the plugin
     this.addSettingTab(new AsciiMathSettingTab(this.app, this))
 
     // eslint-disable-next-line no-console
     console.log('Obsidian asciimath loaded')
+  }
+
+  async checkAndReplaceCodeBlocks(editor: Editor, view: MarkdownView) {
+    let content = await this.app.vault.read(view.file)
+    content = this.replaceCodeBlockInPlace(content)
+    content = this.replaceAmInlineInPlace(content)
+    this.app.vault.modify(view.file, content)
+  }
+
+  replaceAmInlineInPlace(contents: string): string {
+    const [open, close] = Object.values(this.settings.inline).map(normalizeEscape)
+    const reg = new RegExp(`${open}(.*?)${close}`, 'gm')
+    let count = 0
+    contents = contents.replaceAll(reg, (...args) => {
+      count++
+      return `$${toTex(AM, args[1])}$`
+    })
+    // eslint-disable-next-line no-new
+    new Notice(`Processed ${count} asciimath inline!`)
+    return contents
+  }
+
+  replaceCodeBlockInPlace(contents: string): string {
+    const reg = new RegExp(`^(\`{3,})(${this.settings.blockPrefix.join('|')})([\\s\\S]*?)?\\n^\\1`, 'gm')
+    let count = 0
+    contents = contents.replaceAll(reg, (...args) => {
+      count++
+      return `$$\n${toTex(AM, args[3])}\n$$`
+    })
+    // eslint-disable-next-line no-new
+    new Notice(`Processed ${count} asciimath blocks!`)
+    return contents
   }
 
   registerAsciiMathBlock(prefix: string) {
@@ -115,7 +165,7 @@ export default class AsciiMathPlugin extends Plugin {
       let { open, close } = this.settings.inline
       open = open.slice(1)
       close = close.substring(0, close.length - 1)
-      const regex = new RegExp(`^${open.replace(/([$^\\.()[\]{}*?|])/, '\\$1')}(.*?)${close.replace(/([$^\\.()[\]{}*?|])/, '\\$1')}$`)
+      const regex = new RegExp(`^${normalizeEscape(open)}(.*?)${normalizeEscape(close)}$`)
       const matches = node.innerText.match(regex)
       if (!matches)
         continue
