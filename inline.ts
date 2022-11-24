@@ -29,6 +29,7 @@ import {
 
 // @ts-expect-error type declaration
 import AM from 'asciimath-js'
+import { normalizeEscape } from 'utils'
 
 function selectionAndRangeOverlap(
   selection: EditorSelection,
@@ -75,7 +76,7 @@ function inlineRender(view: EditorView, plugin: AsciiMathPlugin) {
         // const original = view.state.doc.sliceString(start, end).trim()
         const original = view.state.doc.sliceString(start - open.length + 1, end + close.length - 1).trim()
 
-        const regex2 = new RegExp(`^${open.replace(/([$^\\.()[\]{}*?|])/, '\\$1')}(.*?)${close.replace(/([$^\\.()[\]{}*?|])/, '\\$1')}$`)
+        const regex2 = new RegExp(`^${normalizeEscape(open)}(.*?)${normalizeEscape(close)}$`)
         const matches = original.match(regex2)
         if (!matches)
           return

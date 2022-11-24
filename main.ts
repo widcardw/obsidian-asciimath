@@ -20,6 +20,7 @@ import {
 // @ts-expect-error type declaration
 import AM from 'asciimath-js'
 import { inlinePlugin } from 'inline'
+import { normalizeEscape } from 'utils'
 
 // Remember to rename these classes and interfaces!
 
@@ -37,10 +38,6 @@ const DEFAULT_SETTINGS: AsciiMathSettings = {
     open: '`$',
     close: '$`',
   },
-}
-
-function normalizeEscape(escape: string) {
-  return escape.replace(/([$^\\.()[\]{}*?|])/g, '\\$1')
 }
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
