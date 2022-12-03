@@ -1,6 +1,7 @@
 import type {
   App,
   Editor,
+  EditorChange,
   MarkdownPostProcessor,
   MarkdownPostProcessorContext,
   MarkdownView,
@@ -61,6 +62,7 @@ export default class AsciiMathPlugin extends Plugin {
     // @ts-expect-error MathJax name not found
     if (!MathJax) {
       console.warn('MathJax was not defined despite loading it.')
+      new Notice('Error: MathJax was not defined despite loading it!')
       return
     }
 
@@ -85,8 +87,6 @@ export default class AsciiMathPlugin extends Plugin {
       id: 'insert-asciimath-block',
       name: 'Insert asciimath block',
       editorCallback: (editor: Editor, view: MarkdownView) => {
-        // // eslint-disable-next-line no-console
-        // console.log(editor.getSelection(), editor.getCursor())
         editor.replaceSelection(`\`\`\`${this.settings.blockPrefix[0] || 'asciimath'}\n${editor.getDoc().getSelection()}\n\`\`\``)
         const cursor = editor.getCursor()
         editor.setCursor(cursor.line - 1)
@@ -97,7 +97,7 @@ export default class AsciiMathPlugin extends Plugin {
       id: 'convert-am-block-into-mathjax-in-current-file',
       name: 'Convert asciimath block into mathjax in current file',
       editorCallback: (editor: Editor, view: MarkdownView) => {
-        this.checkAndReplaceCodeBlocks(editor, view)
+        this.editorTransactionConvertFormula(editor)
       },
     })
 
@@ -108,36 +108,68 @@ export default class AsciiMathPlugin extends Plugin {
     console.log('Obsidian asciimath loaded')
   }
 
-  async checkAndReplaceCodeBlocks(editor: Editor, view: MarkdownView) {
-    let content = await this.app.vault.read(view.file)
-    content = this.replaceCodeBlockInPlace(content)
-    content = this.replaceAmInlineInPlace(content)
-    this.app.vault.modify(view.file, content)
-  }
-
-  replaceAmInlineInPlace(contents: string): string {
+  editorTransactionConvertFormula(editor: Editor) {
+    const content = editor.getValue()
+    const lines = content.split('\n')
+    const blockOpeningReg = new RegExp(`^(\`{3,})(${this.settings.blockPrefix.join('|')})`)
     const [open, close] = Object.values(this.settings.inline).map(normalizeEscape)
-    const reg = new RegExp(`${open}(.*?)${close}`, 'gm')
-    let count = 0
-    contents = contents.replaceAll(reg, (...args) => {
-      count++
-      return `$${toTex(AM, args[1])}$`
-    })
-    // eslint-disable-next-line no-new
-    new Notice(`Processed ${count} asciimath inline!`)
-    return contents
-  }
+    const inlineReg = new RegExp(`${open}(.*?)${close}`, 'g')
+    const changes: EditorChange[] = []
 
-  replaceCodeBlockInPlace(contents: string): string {
-    const reg = new RegExp(`^(\`{3,})(${this.settings.blockPrefix.join('|')})([\\s\\S]*?)?\\n^\\1`, 'gm')
-    let count = 0
-    contents = contents.replaceAll(reg, (...args) => {
-      count++
-      return `$$\n${toTex(AM, args[3])}\n$$`
-    })
-    // eslint-disable-next-line no-new
-    new Notice(`Processed ${count} asciimath blocks!`)
-    return contents
+    for (let i = 0; i < lines.length; i++) {
+      // Convert code block
+
+      // Notice
+      // If the code block formula is within a blockquote or other blocks,
+      // it will not be converted!
+      const match = lines[i].match(blockOpeningReg)
+      if (match) {
+        const startLineNumber = i
+        let endLineNumber = -1
+        const closingEscape = match[1]
+        for (; i < lines.length; i++) {
+          if (lines[i].trim() === closingEscape) {
+            endLineNumber = i
+            break
+          }
+        }
+        if (endLineNumber === -1) {
+          new Notice('Error: Asciimath block no ending escape!')
+          throw new Error('Asciimath block no ending escape!')
+        }
+
+        const amContent = lines.slice(startLineNumber + 1, endLineNumber).join('\n')
+        changes.push({
+          text: `$$\n${toTex(AM, amContent)}\n$$\n`,
+          from: { line: startLineNumber, ch: 0 },
+          to: { line: endLineNumber + 1, ch: 0 },
+        })
+      }
+      else {
+        // match inline formulas
+        const inlineIterator = lines[i].matchAll(inlineReg)
+        let match: IteratorResult<RegExpMatchArray>
+        // eslint-disable-next-line no-cond-assign
+        while (!(match = inlineIterator.next()).done) {
+          const v = match.value
+          const amContent = v[1]
+          const startCh = v.index as number
+          const endCh = startCh + v[0].length
+          changes.push({
+            text: `$${toTex(AM, amContent)}$`,
+            from: { line: i, ch: startCh },
+            to: { line: i, ch: endCh },
+          })
+        }
+      }
+    }
+    if (changes.length === 0) {
+      new Notice('No asciimath formulas converted!')
+      return
+    }
+    // Batch transaction
+    editor.transaction({ changes })
+    new Notice(`Successfully converted ${changes.length} asciimath formulas!`)
   }
 
   registerAsciiMathBlock(prefix: string) {
@@ -259,10 +291,7 @@ class AsciiMathSettingTab extends PluginSettingTab {
         .setPlaceholder('asciimath, am')
         .setValue(this.plugin.settings.blockPrefix.join(', '))
         .onChange(async (value) => {
-          // // eslint-disable-next-line no-console
-          // console.log(value)
           this.plugin.settings.blockPrefix = value.split(',')
-            .filter(Boolean)
             .map(s => s.trim())
             .filter(Boolean)
           // await this.plugin.saveSettings()
@@ -275,8 +304,6 @@ class AsciiMathSettingTab extends PluginSettingTab {
         .setPlaceholder('`$')
         .setValue(this.plugin.settings.inline.open)
         .onChange(async (value) => {
-          // // eslint-disable-next-line no-console
-          // console.log(value)
           this.plugin.settings.inline.open = value
           // await this.plugin.saveSettings()
         }))
@@ -301,13 +328,11 @@ class AsciiMathSettingTab extends PluginSettingTab {
         .onClick(async () => {
           const valid = validateSettings(this.plugin.settings)
           if (!valid.isValid) {
-            // eslint-disable-next-line no-new
             new Notice(valid.message)
             return
           }
           await this.plugin.saveSettings()
           await this.plugin.loadSettings()
-          // eslint-disable-next-line no-new
           new Notice('Asciimath settings reloaded successfully!')
         }))
   }
