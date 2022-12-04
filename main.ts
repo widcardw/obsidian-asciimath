@@ -110,66 +110,59 @@ export default class AsciiMathPlugin extends Plugin {
 
   editorTransactionConvertFormula(editor: Editor) {
     const content = editor.getValue()
-    const lines = content.split('\n')
-    const blockOpeningReg = new RegExp(`^(\`{3,})(${this.settings.blockPrefix.join('|')})`)
+    const blockReg = new RegExp(`((\`|~){3,})(${this.settings.blockPrefix.join('|')})([\\s\\S]*?)\\n\\1`, 'gm')
     const [open, close] = Object.values(this.settings.inline).map(normalizeEscape)
     const inlineReg = new RegExp(`${open}(.*?)${close}`, 'g')
     const changes: EditorChange[] = []
 
-    for (let i = 0; i < lines.length; i++) {
-      // Convert code block
-
-      // Notice
-      // If the code block formula is within a blockquote or other blocks,
-      // it will not be converted!
-      const match = lines[i].match(blockOpeningReg)
-      if (match) {
-        const startLineNumber = i
-        let endLineNumber = -1
-        const closingEscape = match[1]
-        for (; i < lines.length; i++) {
-          if (lines[i].trim() === closingEscape) {
-            endLineNumber = i
-            break
-          }
-        }
-        if (endLineNumber === -1) {
-          new Notice('Error: Asciimath block no ending escape!')
-          throw new Error('Asciimath block no ending escape!')
-        }
-
-        const amContent = lines.slice(startLineNumber + 1, endLineNumber).join('\n')
+    try {
+      const blockIterator = content.matchAll(blockReg)
+      let match: IteratorResult<RegExpMatchArray>
+      // eslint-disable-next-line no-cond-assign
+      while (!(match = blockIterator.next()).done) {
+        const index = match.value.index
+        if (typeof index === 'undefined')
+          throw new Error('Invalid index: while converting block fomula')
+        const amContent = match.value[4]
+        if (typeof amContent !== 'string')
+          throw new Error(`Invalid asciimath formula, index: ${index}`)
+        const from = editor.offsetToPos(index)
+        const to = editor.offsetToPos(index + match.value[0].length)
         changes.push({
-          text: `$$\n${toTex(AM, amContent)}\n$$\n`,
-          from: { line: startLineNumber, ch: 0 },
-          to: { line: endLineNumber + 1, ch: 0 },
+          text: `$$\n${toTex(AM, amContent)}\n$$`,
+          from,
+          to,
         })
       }
-      else {
-        // match inline formulas
-        const inlineIterator = lines[i].matchAll(inlineReg)
-        let match: IteratorResult<RegExpMatchArray>
-        // eslint-disable-next-line no-cond-assign
-        while (!(match = inlineIterator.next()).done) {
-          const v = match.value
-          const amContent = v[1]
-          const startCh = v.index as number
-          const endCh = startCh + v[0].length
-          changes.push({
-            text: `$${toTex(AM, amContent)}$`,
-            from: { line: i, ch: startCh },
-            to: { line: i, ch: endCh },
-          })
-        }
+
+      const inlineIterator = content.matchAll(inlineReg)
+      // eslint-disable-next-line no-cond-assign
+      while (!(match = inlineIterator.next()).done) {
+        const index = match.value.index
+        if (typeof index === 'undefined')
+          throw new Error('Invalid index: while converting inline formula')
+        const amContent = match.value[1]
+        if (typeof amContent !== 'string')
+          throw new Error(`Invalid asciimath formula, index: ${index}`)
+        const from = editor.offsetToPos(index)
+        const to = editor.offsetToPos(index + match.value[0].length)
+        changes.push({
+          text: `$${toTex(AM, amContent)}$`,
+          from,
+          to,
+        })
       }
+      if (changes.length === 0) {
+        new Notice('No asciimath formulas converted!')
+        return
+      }
+      // Batch transaction
+      editor.transaction({ changes })
+      new Notice(`Successfully converted ${changes.length} asciimath formulas!`)
     }
-    if (changes.length === 0) {
-      new Notice('No asciimath formulas converted!')
-      return
+    catch (e) {
+      new Notice(String(e))
     }
-    // Batch transaction
-    editor.transaction({ changes })
-    new Notice(`Successfully converted ${changes.length} asciimath formulas!`)
   }
 
   registerAsciiMathBlock(prefix: string) {
