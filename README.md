@@ -7,7 +7,7 @@
 
 ## Usage
 
-You can write math formulas with the syntax of [asciimath](https://asciimath.org).
+You can write math formulas with the syntax of [asciimath](http://asciimath.org).
 
 #### Code block
 
