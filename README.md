@@ -8,6 +8,7 @@
 ## Usage
 
 You can write math formulas with the syntax of [asciimath](http://asciimath.org).
+I've recently refactored the library, and you can refer to [asciimath-parser](https://github.com/widcardw/asciimath-parser) and [its online demo](https://asciimath.widcard.win).
 
 #### Code block
 
