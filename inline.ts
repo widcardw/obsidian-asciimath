@@ -27,9 +27,9 @@ import {
   renderMath,
 } from 'obsidian'
 
-// @ts-expect-error type declaration
-import AM from 'asciimath-js'
 import { normalizeEscape } from 'utils'
+import { AsciiMath } from 'asciimath-parser'
+const AM = new AsciiMath()
 
 function selectionAndRangeOverlap(
   selection: EditorSelection,
@@ -113,7 +113,7 @@ class InlineWidget extends WidgetType {
   // Add CSS classes and return HTML element.
   // In "complex" cases it will get filled with the correct text/child elements later.
   toDOM(view: EditorView): HTMLElement {
-    const tex = AM.am2tex(this.rawQuery)
+    const tex = AM.toTex(this.rawQuery)
     const mathEl = renderMath(tex, false)
     finishRenderMath()
     return mathEl

@@ -18,12 +18,9 @@ import {
   renderMath,
 } from 'obsidian'
 
-// @ts-expect-error type declaration
-import AM from 'asciimath-js'
+import { AsciiMath } from 'asciimath-parser'
 import { inlinePlugin } from 'inline'
 import { normalizeEscape } from 'utils'
-
-// Remember to rename these classes and interfaces!
 
 interface AsciiMathSettings {
   blockPrefix: string[]
@@ -41,9 +38,8 @@ const DEFAULT_SETTINGS: AsciiMathSettings = {
   },
 }
 
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-function toTex(am: any, content: string): string {
-  const tex = am.am2tex(content) as string
+function toTex(am: AsciiMath, content: string): string {
+  const tex = am.toTex(content)
   return tex.replace(/(\{|\})(\1+)/g, (...args) => Array(args[2].length + 1).fill(args[1]).join(' '))
 }
 
@@ -52,12 +48,15 @@ export default class AsciiMathPlugin extends Plugin {
 
   postProcessors: Map<string, MarkdownPostProcessor> = new Map()
 
+  AM: AsciiMath
+
   async onload() {
     await this.loadSettings()
 
     await loadMathJax()
 
-    AM.init()
+    // AM.init()
+    this.AM = new AsciiMath()
 
     // @ts-expect-error MathJax name not found
     if (!MathJax) {
@@ -129,7 +128,7 @@ export default class AsciiMathPlugin extends Plugin {
         const from = editor.offsetToPos(index)
         const to = editor.offsetToPos(index + match.value[0].length)
         changes.push({
-          text: `$$\n${toTex(AM, amContent)}\n$$`,
+          text: `$$\n${toTex(this.AM, amContent)}\n$$`,
           from,
           to,
         })
@@ -147,7 +146,7 @@ export default class AsciiMathPlugin extends Plugin {
         const from = editor.offsetToPos(index)
         const to = editor.offsetToPos(index + match.value[0].length)
         changes.push({
-          text: `$${toTex(AM, amContent)}$`,
+          text: `$${toTex(this.AM, amContent)}$`,
           from,
           to,
         })
@@ -191,7 +190,7 @@ export default class AsciiMathPlugin extends Plugin {
       const matches = node.innerText.match(regex)
       if (!matches)
         continue
-      const tex = AM.am2tex(matches[1])
+      const tex = this.AM.toTex(matches[1])
       const mathEl = renderMath(tex, false)
       finishRenderMath()
       node.replaceWith(mathEl)
@@ -204,7 +203,7 @@ export default class AsciiMathPlugin extends Plugin {
     el: HTMLElement,
     _?: MarkdownPostProcessorContext,
   ) {
-    const tex = AM.am2tex(src)
+    const tex = this.AM.toTex(src)
 
     const mathEl = renderMath(tex, true)
 
