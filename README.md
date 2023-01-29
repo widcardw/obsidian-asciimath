@@ -45,7 +45,7 @@ x & |-> "e"^(2pi "i" x)
 By default, the inline formula should be wrapped with \`\$ and \$\`, that is, you should input the formula like
 
 ```markdown
-The integral `$int _0^(+oo) "e"^-x dx = 1$`.
+The integral `$int _0^(+oo) "e"^(-x) dx = 1$`.
 ```
 
 ![](screenshots/inline.png)
