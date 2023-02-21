@@ -325,6 +325,12 @@ class AsciiMathSettingTab extends PluginSettingTab {
           }
           await this.plugin.saveSettings()
           await this.plugin.loadSettings()
+          this.plugin.settings.blockPrefix.forEach((prefix) => {
+            // console.log(prefix)
+            try {
+              this.plugin.registerAsciiMathBlock(prefix);
+            } catch (error) {}
+          });    
           new Notice('Asciimath settings reloaded successfully!')
         }))
   }
