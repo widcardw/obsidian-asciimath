@@ -19,8 +19,8 @@ import {
 } from 'obsidian'
 
 import { AsciiMath } from 'asciimath-parser'
-import { inlinePlugin } from 'inline'
-import { normalizeEscape } from 'utils'
+import { normalizeEscape } from './utils'
+import { inlinePlugin } from './inline'
 
 interface AsciiMathSettings {
   blockPrefix: string[]
@@ -45,6 +45,7 @@ function toTex(am: AsciiMath, content: string): string {
 
 export default class AsciiMathPlugin extends Plugin {
   settings: AsciiMathSettings
+  existPrefixes: string[] = []
 
   postProcessors: Map<string, MarkdownPostProcessor> = new Map()
 
@@ -72,6 +73,7 @@ export default class AsciiMathPlugin extends Plugin {
       this.settings.blockPrefix.forEach((prefix) => {
         // console.log(prefix)
         this.registerAsciiMathBlock(prefix)
+        this.existPrefixes.push(prefix)
       })
     })
 
@@ -85,7 +87,7 @@ export default class AsciiMathPlugin extends Plugin {
     this.addCommand({
       id: 'insert-asciimath-block',
       name: 'Insert asciimath block',
-      editorCallback: (editor: Editor, view: MarkdownView) => {
+      editorCallback: (editor: Editor, _view: MarkdownView) => {
         editor.replaceSelection(`\`\`\`${this.settings.blockPrefix[0] || 'asciimath'}\n${editor.getDoc().getSelection()}\n\`\`\``)
         const cursor = editor.getCursor()
         editor.setCursor(cursor.line - 1)
@@ -95,7 +97,7 @@ export default class AsciiMathPlugin extends Plugin {
     this.addCommand({
       id: 'convert-am-block-into-mathjax-in-current-file',
       name: 'Convert asciimath block into mathjax in current file',
-      editorCallback: (editor: Editor, view: MarkdownView) => {
+      editorCallback: (editor: Editor, _view: MarkdownView) => {
         this.editorTransactionConvertFormula(editor)
       },
     })
@@ -175,7 +177,7 @@ export default class AsciiMathPlugin extends Plugin {
   }
 
   // Process formulas in reading mode
-  async postProcessorInline(el: HTMLElement, ctx: MarkdownPostProcessorContext) {
+  async postProcessorInline(el: HTMLElement, _ctx: MarkdownPostProcessorContext) {
     const nodeList = el.querySelectorAll('code')
     if (!nodeList.length)
       return
@@ -326,11 +328,9 @@ class AsciiMathSettingTab extends PluginSettingTab {
           await this.plugin.saveSettings()
           await this.plugin.loadSettings()
           this.plugin.settings.blockPrefix.forEach((prefix) => {
-            // console.log(prefix)
-            try {
-              this.plugin.registerAsciiMathBlock(prefix);
-            } catch (error) {}
-          });    
+            if (!this.plugin.existPrefixes.includes(prefix))
+              this.plugin.registerAsciiMathBlock(prefix)
+          })
           new Notice('Asciimath settings reloaded successfully!')
         }))
   }

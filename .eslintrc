@@ -6,7 +6,7 @@
       "@typescript-eslint"
     ],
     "extends": [
-      "@antfu",
+      "@antfu/eslint-config-ts",
       "eslint:recommended",
       "plugin:@typescript-eslint/eslint-recommended",
       "plugin:@typescript-eslint/recommended"
