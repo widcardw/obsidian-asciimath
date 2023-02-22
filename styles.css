@@ -6,3 +6,8 @@ available in the app when your plugin is enabled.
 If your plugin does not need CSS, delete this file.
 
 */
+.__asciimath_settings_custom-symbols {
+  width: 300px;
+  height: 100px;
+  font-family: var(--font-monospace), 'Courier New', Courier, monospace;
+}

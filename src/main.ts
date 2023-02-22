@@ -8,11 +8,11 @@ import type {
 } from 'obsidian'
 import {
   MarkdownPreviewRenderer,
-
   Notice,
   Plugin,
   PluginSettingTab,
   Setting,
+  debounce,
   finishRenderMath,
   loadMathJax,
   renderMath,
@@ -28,6 +28,7 @@ interface AsciiMathSettings {
     open: string
     close: string
   }
+  customSymbols: RuleType
 }
 
 const DEFAULT_SETTINGS: AsciiMathSettings = {
@@ -36,12 +37,15 @@ const DEFAULT_SETTINGS: AsciiMathSettings = {
     open: '`$',
     close: '$`',
   },
+  customSymbols: [],
 }
 
 function toTex(am: AsciiMath, content: string): string {
   const tex = am.toTex(content)
   return tex.replace(/(\{|\})(\1+)/g, (...args) => Array(args[2].length + 1).fill(args[1]).join(' '))
 }
+
+type RuleType = string[][]
 
 export default class AsciiMathPlugin extends Plugin {
   settings: AsciiMathSettings
@@ -57,7 +61,9 @@ export default class AsciiMathPlugin extends Plugin {
     await loadMathJax()
 
     // AM.init()
-    this.AM = new AsciiMath()
+    this.AM = new AsciiMath({
+      extConst: this.settings.customSymbols as Array<[string, string]>,
+    })
 
     // @ts-expect-error MathJax name not found
     if (!MathJax) {
@@ -257,6 +263,14 @@ function validateSettings(settings: AsciiMathSettings): { isValid: boolean; mess
       message: 'Invalid inline trailing escape!',
     }
   }
+  const { customSymbols } = settings
+  if (customSymbols.find(pair => pair.length !== 2)) {
+    return {
+      isValid: false,
+      message: 'Custom rule should be two string split with a comma!',
+    }
+  }
+
   return {
     isValid: true,
     message: 'OK',
@@ -284,12 +298,11 @@ class AsciiMathSettingTab extends PluginSettingTab {
       .addText(text => text
         .setPlaceholder('asciimath, am')
         .setValue(this.plugin.settings.blockPrefix.join(', '))
-        .onChange(async (value) => {
+        .onChange(debounce((value) => {
           this.plugin.settings.blockPrefix = value.split(',')
             .map(s => s.trim())
             .filter(Boolean)
-          // await this.plugin.saveSettings()
-        }))
+        }, 1000)))
 
     new Setting(containerEl)
       .setName('Inline asciimath start')
@@ -297,10 +310,9 @@ class AsciiMathSettingTab extends PluginSettingTab {
       .addText(text => text
         .setPlaceholder('`$')
         .setValue(this.plugin.settings.inline.open)
-        .onChange(async (value) => {
+        .onChange(debounce ((value) => {
           this.plugin.settings.inline.open = value
-          // await this.plugin.saveSettings()
-        }))
+        }, 1000)))
 
     new Setting(containerEl)
       .setName('Inline asciimath end')
@@ -308,12 +320,22 @@ class AsciiMathSettingTab extends PluginSettingTab {
       .addText(text => text
         .setPlaceholder('$`')
         .setValue(this.plugin.settings.inline.close)
-        .onChange(async (value) => {
-          // // eslint-disable-next-line no-console
-          // console.log(value)
+        .onChange(debounce((value) => {
           this.plugin.settings.inline.close = value
-          // await this.plugin.saveSettings()
-        }))
+        }, 1000)))
+
+    new Setting(containerEl)
+      .setName('Custom symbols')
+      .setDesc('Transforms custom symbols into LaTeX symbols. One row for each rule.')
+      .addTextArea((text) => {
+        const el = text
+          .setPlaceholder('symbol1, \\LaTeXSymbol1\nsymbol2, \\LaTeXSymbol2\n...')
+          .setValue(this.plugin.settings.customSymbols.map(r => r.join(', ')).join('\n'))
+          .onChange(debounce((value) => {
+            this.plugin.settings.customSymbols = value.split('\n').map(r => r.split(',').map(s => s.trim()).filter(Boolean)).filter(l => l.length)
+          }, 1000))
+        el.inputEl.addClass('__asciimath_settings_custom-symbols')
+      })
 
     new Setting(containerEl)
       .setName('Don\'t forget to save and reload settings →')
@@ -330,6 +352,9 @@ class AsciiMathSettingTab extends PluginSettingTab {
           this.plugin.settings.blockPrefix.forEach((prefix) => {
             if (!this.plugin.existPrefixes.includes(prefix))
               this.plugin.registerAsciiMathBlock(prefix)
+          })
+          this.plugin.AM = new AsciiMath({
+            extConst: this.plugin.settings.customSymbols as Array<[string, string]>,
           })
           new Notice('Asciimath settings reloaded successfully!')
         }))
