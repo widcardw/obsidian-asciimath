@@ -8,7 +8,7 @@ specifiers:
   '@types/node': ^16.11.6
   '@typescript-eslint/eslint-plugin': 5.29.0
   '@typescript-eslint/parser': 5.29.0
-  asciimath-parser: ^0.5.0
+  asciimath-parser: ^0.5.3
   builtin-modules: 3.3.0
   esbuild: 0.14.47
   eslint: ^8.35.0
@@ -24,7 +24,7 @@ devDependencies:
   '@types/node': 16.18.3
   '@typescript-eslint/eslint-plugin': 5.29.0_jwx5cc4si27vroeurmigvyu3du
   '@typescript-eslint/parser': 5.29.0_ctjxwbjqmg5wmywbidv53geblq
-  asciimath-parser: 0.5.0
+  asciimath-parser: 0.5.3
   builtin-modules: 3.3.0
   esbuild: 0.14.47
   eslint: 8.35.0
@@ -661,8 +661,8 @@ packages:
       es-shim-unscopables: 1.0.0
     dev: true
 
-  /asciimath-parser/0.5.0:
-    resolution: {integrity: sha512-7dcOb3pdDgbtpyEAaTw9pXLXPh4JKAECauLn9aAvzObTqHhlou12DZk03l23OIS4COQyr+IBlsP0vNNbOldbAg==}
+  /asciimath-parser/0.5.3:
+    resolution: {integrity: sha512-WIhQTeZmN93PO3MmB3SrYziNlvPrX1fXN0wD9yKAEGeW+sv8SIFuJdbdmEyjv+QkIttaoaaI5y608bed3Ir4Og==}
     dev: true
 
   /balanced-match/1.0.2:
