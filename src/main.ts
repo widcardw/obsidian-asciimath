@@ -18,7 +18,7 @@ import {
   renderMath,
 } from 'obsidian'
 
-import { AsciiMath } from 'asciimath-parser'
+import { AsciiMath, TokenTypes } from 'asciimath-parser'
 import { normalizeEscape } from './utils'
 import { inlinePlugin } from './inline'
 
@@ -55,14 +55,19 @@ export default class AsciiMathPlugin extends Plugin {
 
   AM: AsciiMath
 
+  calcSymbols() {
+    return this.settings.customSymbols.map(([k, v]) => {
+      return [k, { type: TokenTypes.Const, tex: v }] as [string, { type: TokenTypes; tex: string }]
+    })
+  }
+
   async onload() {
     await this.loadSettings()
 
     await loadMathJax()
 
-    // AM.init()
     this.AM = new AsciiMath({
-      extConst: this.settings.customSymbols as Array<[string, string]>,
+      symbols: this.calcSymbols(),
     })
 
     // @ts-expect-error MathJax name not found
@@ -354,7 +359,7 @@ class AsciiMathSettingTab extends PluginSettingTab {
               this.plugin.registerAsciiMathBlock(prefix)
           })
           this.plugin.AM = new AsciiMath({
-            extConst: this.plugin.settings.customSymbols as Array<[string, string]>,
+            symbols: this.plugin.calcSymbols(),
           })
           new Notice('Asciimath settings reloaded successfully!')
         }))
