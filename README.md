@@ -10,6 +10,8 @@
 You can write math formulas with the syntax of [asciimath](http://asciimath.org).
 I've recently refactored the library, and you can refer to [asciimath-parser](https://github.com/widcardw/asciimath-parser) and [its online demo](https://asciimath.widcard.win).
 
+**Warning**: Some of the rules are not exactly consistent with http://asciimath.org, especially the matrix. For more information, please refer to https://asciimath.widcard.win.
+
 #### Code block
 
 ~~~text
@@ -50,9 +52,6 @@ The integral `$int _0^(+oo) "e"^(-x) dx = 1$`.
 ```
 
 ![](screenshots/inline.png)
-
-For more infomation about asciimath, please refer to [asciimath.org](http://asciimath.org) and [zmx0142857's note (in Chinese)](https://zmx0142857.github.io/note/).
-
 
 ## Configuration
 
@@ -101,3 +100,7 @@ git clone git@github.com:widcardw/obsidian-asciimath.git
 pnpm i
 pnpm run dev
 ```
+
+## Support
+
+During my use, this plugin often causes Obsidian rendering problems (especially in live preview mode). If you are interested in helping me to improve it, please feel free to give suggestions on github [issues](https://github.com/widcardw/obsidian-asciimath/issues) or [pull requests](https://github.com/widcardw/obsidian-asciimath/pulls). Thank you!
