@@ -1,5 +1,9 @@
 lockfileVersion: '6.0'
 
+settings:
+  autoInstallPeers: true
+  excludeLinksFromLockfile: false
+
 devDependencies:
   '@antfu/eslint-config-ts':
     specifier: ^0.35.2
@@ -23,8 +27,8 @@ devDependencies:
     specifier: 5.29.0
     version: 5.29.0(eslint@8.35.0)(typescript@4.7.4)
   asciimath-parser:
-    specifier: ^0.6.0
-    version: 0.6.0
+    specifier: ^0.6.2
+    version: 0.6.2
   builtin-modules:
     specifier: 3.3.0
     version: 3.3.0
@@ -36,7 +40,7 @@ devDependencies:
     version: 8.35.0
   obsidian:
     specifier: latest
-    version: 1.2.5(@codemirror/state@6.1.2)(@codemirror/view@6.4.1)
+    version: 1.4.11(@codemirror/state@6.1.2)(@codemirror/view@6.4.1)
   tslib:
     specifier: 2.4.0
     version: 2.4.0
@@ -227,8 +231,8 @@ packages:
       fastq: 1.13.0
     dev: true
 
-  /@types/codemirror@0.0.108:
-    resolution: {integrity: sha512-3FGFcus0P7C2UOGCNUVENqObEb4SFk+S8Dnxq7K6aIsLVs/vDtlangl3PEO0ykaKXyK56swVF6Nho7VsA44uhw==}
+  /@types/codemirror@5.60.8:
+    resolution: {integrity: sha512-VjFgDF/eB+Aklcy15TtOTLQeMjTo07k7KAjql8OK5Dirr7a6sJY4T1uVBDuTVG9VEmn1uUsohOpYnVfgC6/jyw==}
     dependencies:
       '@types/tern': 0.23.4
     dev: true
@@ -673,8 +677,8 @@ packages:
       es-shim-unscopables: 1.0.0
     dev: true
 
-  /asciimath-parser@0.6.0:
-    resolution: {integrity: sha512-nJBfhWEnpCumJnbLtYLYiIQ0fN1ALA0YZDbQFKe66jERJMIYUa102oaMvTAeIWd6L50MWxkBMshlJrIGJrvlMQ==}
+  /asciimath-parser@0.6.2:
+    resolution: {integrity: sha512-uMHvFoTupH96DiTyyXkl196DUlPttIs/SRdp+cU3caIzh6g0zBnSYkU5hrW6FNZT3PpNsCX/BhEH9UzjUUFB8g==}
     dev: true
 
   /balanced-match@1.0.2:
@@ -2130,15 +2134,15 @@ packages:
       es-abstract: 1.20.4
     dev: true
 
-  /obsidian@1.2.5(@codemirror/state@6.1.2)(@codemirror/view@6.4.1):
-    resolution: {integrity: sha512-RKN4W3PaHsoWwlNRg1SV+iJssQ5vnQYzsCSfmFAUHvA8Q8nzk4pW3HGWXSvor3ZM532KECljG86lEx02OvBwpA==}
+  /obsidian@1.4.11(@codemirror/state@6.1.2)(@codemirror/view@6.4.1):
+    resolution: {integrity: sha512-BCVYTvaXxElJMl6MMbDdY/CGK+aq18SdtDY/7vH8v6BxCBQ6KF4kKxL0vG9UZ0o5qh139KpUoJHNm+6O5dllKA==}
     peerDependencies:
       '@codemirror/state': ^6.0.0
       '@codemirror/view': ^6.0.0
     dependencies:
       '@codemirror/state': 6.1.2
       '@codemirror/view': 6.4.1
-      '@types/codemirror': 0.0.108
+      '@types/codemirror': 5.60.8
       moment: 2.29.4
     dev: true
 
