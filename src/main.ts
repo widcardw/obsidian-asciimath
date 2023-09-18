@@ -106,6 +106,19 @@ export default class AsciiMathPlugin extends Plugin {
     })
 
     this.addCommand({
+      id: 'insert-asciimath-inline',
+      name: 'Insert asciimath inline',
+      editorCallback: (editor: Editor, _view: MarkdownView) => {
+        editor.replaceSelection(`${this.settings.inline.open}${editor.getDoc().getSelection()}${this.settings.inline.close}`)
+        const cursor = editor.getCursor()
+        editor.setCursor({
+          line: cursor.line, 
+          ch: cursor.ch - this.settings.inline.close.length
+        })
+      }
+    })
+
+    this.addCommand({
       id: 'convert-am-block-into-mathjax-in-current-file',
       name: 'Convert asciimath block into mathjax in current file',
       editorCallback: (editor: Editor, _view: MarkdownView) => {
