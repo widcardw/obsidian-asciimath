@@ -20,11 +20,12 @@ import {
 } from 'obsidian'
 
 import { AsciiMath, TokenTypes } from 'asciimath-parser'
-import { normalizeEscape } from './utils'
+import { isLatexCode, normalizeEscape } from './utils'
 import { inlinePlugin } from './inline'
 
 interface AsciiMathSettings {
   blockPrefix: string[]
+  replaceMathBlock: boolean
   inline: {
     open: string
     close: string
@@ -34,6 +35,7 @@ interface AsciiMathSettings {
 
 const DEFAULT_SETTINGS: AsciiMathSettings = {
   blockPrefix: ['asciimath', 'am'],
+  replaceMathBlock: true,
   inline: {
     open: '`$',
     close: '$`',
@@ -51,6 +53,8 @@ type RuleType = string[][]
 export default class AsciiMathPlugin extends Plugin {
   settings: AsciiMathSettings
   existPrefixes: string[] = []
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  tex2chtml: (source: string, r: { display: boolean }) => any
 
   postProcessors: Map<string, MarkdownPostProcessor> = new Map()
 
@@ -71,20 +75,22 @@ export default class AsciiMathPlugin extends Plugin {
       symbols: this.calcSymbols(),
     })
 
-    // @ts-expect-error MathJax name not found
     if (!MathJax) {
       console.warn('MathJax was not defined despite loading it.')
       new Notice('Error: MathJax was not defined despite loading it!')
       return
     }
 
-    this.postProcessors = new Map()
+    this.tex2chtml = MathJax.tex2chtml
+    this.setupMathBlock()
 
+    // TODO: Should be removed in favor of default math blocks
+    this.postProcessors = new Map()
     // register code block processors
     this.app.workspace.onLayoutReady(async () => {
       this.settings.blockPrefix.forEach((prefix) => {
         // console.log(prefix)
-        this.registerAsciiMathBlock(prefix)
+        this.registerAsciiMathCodeBlock(prefix)
         this.existPrefixes.push(prefix)
       })
     })
@@ -108,21 +114,21 @@ export default class AsciiMathPlugin extends Plugin {
 
     this.addCommand({
       id: 'insert-asciimath-inline',
-      name: 'Insert asciimath inline',
-      editorCallback: (editor: Editor, _view: MarkdownView) => {
-        editor.replaceSelection(`${this.settings.inline.open}${editor.getDoc().getSelection()}${this.settings.inline.close}`)
-        const cursor = editor.getCursor()
-        editor.setCursor({
-          line: cursor.line,
-          ch: cursor.ch - this.settings.inline.close.length,
-        })
+      name: 'Insert asciimath inline (deprecated)',
+      callback: () => {
+        const modal = new Modal(this.app)
+        modal.titleEl.setText('This command is deprecated')
+
+        new Setting(modal.contentEl).setName('It is advised to convert your AsciiMath blocks to LaTeX using "Convert AsciiMath to LaTeX" commands, enable "Replace math blocks" in the plugin settings and proceed with using default obsidian dollar-sign blocks with AsciiMath syntax')
+
+        modal.open()
       },
     })
 
     this.addCommand({
       id: 'convert-am-block-into-mathjax-in-current-file',
       name: 'Convert AsciiMath to LaTeX (active file)',
-      editorCallback: async () => {
+      callback: async () => {
         new ConfirmModal(this.app)
           .setMessage('This will replace all AsciiMath blocks with LaTeX math blocks (dollar-sign blocks). This action can be undone only right after the convertion')
           .onConfirm(() => {
@@ -137,7 +143,7 @@ export default class AsciiMathPlugin extends Plugin {
     this.addCommand({
       id: 'convert-am-block-into-mathjax-in-vault',
       name: 'Convert AsciiMath to LaTeX (entire vault)',
-      editorCallback: async () => {
+      callback: async () => {
         new ConfirmModal(this.app)
           .setMessage('This will replace all AsciiMath blocks with LaTeX math blocks in the entire vault. THIS ACTION CANNOT BE UNDONE')
           .onConfirm(() => {
@@ -154,8 +160,24 @@ export default class AsciiMathPlugin extends Plugin {
     console.log('Obsidian asciimath loaded')
   }
 
+  // This will hijack function that is used for by obsidian for rendering math.
+  setupMathBlock() {
+    if (this.settings.replaceMathBlock)
+      MathJax.tex2chtml = (s, r) => this.convertMathCode(s, r)
+    else MathJax.tex2chtml = this.tex2chtml
+  }
+
+  // Converts AsciiMath (if used in the current block) to tex and then calls default tex2chtml function
+  convertMathCode(source: string, r: { display: boolean }) {
+    if (this.settings.replaceMathBlock && !isLatexCode(source))
+      source = this.AM.toTex(source)
+
+    return this.tex2chtml(source, r)
+  }
+
   // This function reads raw text from the `file` and then replaces AsciiMath blocks (both display & inline) with
   // default obsidian math blocks with LaTeX in them.
+  // TODO: Should be removed in next major release?
   async convertAsciiMathInFile(file: TFile) {
     let content = await this.app.vault.read(file)
     const blockReg = new RegExp(`((\`|~){3,})(${this.settings.blockPrefix.join('|')})([\\s\\S]*?)\\n\\1`, 'gm')
@@ -189,7 +211,7 @@ export default class AsciiMathPlugin extends Plugin {
     }
   }
 
-  registerAsciiMathBlock(prefix: string) {
+  registerAsciiMathCodeBlock(prefix: string) {
     this.postProcessors.set(
       prefix,
       this.registerMarkdownCodeBlockProcessor(
@@ -200,6 +222,7 @@ export default class AsciiMathPlugin extends Plugin {
   }
 
   // Process formulas in reading mode
+  // TODO: Should be removed in favor of inline math blocks
   async postProcessorInline(el: HTMLElement, _ctx: MarkdownPostProcessorContext) {
     const nodeList = el.querySelectorAll('code')
     if (!nodeList.length)
@@ -215,8 +238,7 @@ export default class AsciiMathPlugin extends Plugin {
       const matches = node.innerText.match(regex)
       if (!matches)
         continue
-      const tex = this.AM.toTex(matches[1])
-      const mathEl = renderMath(tex, false)
+      const mathEl = renderMath(matches[1], false)
       finishRenderMath()
       node.replaceWith(mathEl)
     }
@@ -228,18 +250,18 @@ export default class AsciiMathPlugin extends Plugin {
     el: HTMLElement,
     _?: MarkdownPostProcessorContext,
   ) {
-    const tex = this.AM.toTex(src)
-
-    const mathEl = renderMath(tex, true)
-
+    const mathEl = renderMath(src, true)
     el.appendChild(mathEl)
-
     finishRenderMath()
   }
 
   onunload() {
     // eslint-disable-next-line no-console
     console.log('Obsidian asciimath unloaded')
+
+    // Resetting mathjax rendering function to default
+    MathJax.tex2chtml = this.tex2chtml
+
     // this.postProcessors = null
     this.unregister()
   }
@@ -370,6 +392,18 @@ class AsciiMathSettingTab extends PluginSettingTab {
         }, 1000)))
 
     new Setting(containerEl)
+      .setName('Replace math blocks')
+      .setDesc('Enable this if you want to use AsciiMath but keep using default math blocks (dollar-sign blocks). This will not affect your previous notes that are written in LaTeX because the plugin will check which syntax to use before drawing the math.')
+      .addToggle((toggle) => {
+        toggle
+          .setValue(this.plugin.settings.replaceMathBlock)
+          .onChange((v) => {
+            this.plugin.settings.replaceMathBlock = v
+            this.plugin.setupMathBlock()
+          })
+      })
+
+    new Setting(containerEl)
       .setName('Custom symbols')
       .setDesc('Transforms custom symbols into LaTeX symbols. One row for each rule.')
       .addTextArea((text) => {
@@ -385,7 +419,7 @@ class AsciiMathSettingTab extends PluginSettingTab {
     new Setting(containerEl)
       .setHeading()
       .setName('Inline code math (deprecated)')
-      .setDesc('This settings will be removed in the next version of the plugin')
+      .setDesc('These settings will be removed in the next version of the plugin')
 
     new Setting(containerEl)
       .setName('Inline asciimath start')
@@ -421,7 +455,7 @@ class AsciiMathSettingTab extends PluginSettingTab {
           await this.plugin.loadSettings()
           this.plugin.settings.blockPrefix.forEach((prefix) => {
             if (!this.plugin.existPrefixes.includes(prefix))
-              this.plugin.registerAsciiMathBlock(prefix)
+              this.plugin.registerAsciiMathCodeBlock(prefix)
           })
           this.plugin.AM = new AsciiMath({
             symbols: this.plugin.calcSymbols(),
