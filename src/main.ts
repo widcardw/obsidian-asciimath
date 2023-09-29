@@ -95,6 +95,19 @@ export default class AsciiMathPlugin extends Plugin {
       })
     })
 
+    // Deprecation warning for the inline math syntax
+    this.app.workspace.on('file-open', async (file) => {
+      if (!file)
+        return
+
+      const content = await this.app.vault.read(file)
+
+      const [open, close] = Object.values(this.settings.inline).map(normalizeEscape)
+      const inlineReg = new RegExp(`${open}(.*?)${close}`, 'g')
+      if (inlineReg.test(content))
+        new Notice('Inline math with single backticks is deprecated. Refer to the plugin description to fix this issue', 20)
+    })
+
     // register processor in live preview mode
     this.registerEditorExtension([inlinePlugin(this)])
 
