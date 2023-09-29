@@ -1,13 +1,14 @@
 import type {
   App,
   Editor,
-  EditorChange,
   MarkdownPostProcessor,
   MarkdownPostProcessorContext,
   MarkdownView,
+  TFile,
 } from 'obsidian'
 import {
   MarkdownPreviewRenderer,
+  Modal,
   Notice,
   Plugin,
   PluginSettingTab,
@@ -112,17 +113,37 @@ export default class AsciiMathPlugin extends Plugin {
         editor.replaceSelection(`${this.settings.inline.open}${editor.getDoc().getSelection()}${this.settings.inline.close}`)
         const cursor = editor.getCursor()
         editor.setCursor({
-          line: cursor.line, 
-          ch: cursor.ch - this.settings.inline.close.length
+          line: cursor.line,
+          ch: cursor.ch - this.settings.inline.close.length,
         })
-      }
+      },
     })
 
     this.addCommand({
       id: 'convert-am-block-into-mathjax-in-current-file',
-      name: 'Convert asciimath block into mathjax in current file',
-      editorCallback: (editor: Editor, _view: MarkdownView) => {
-        this.editorTransactionConvertFormula(editor)
+      name: 'Convert AsciiMath to LaTeX (active file)',
+      editorCallback: async () => {
+        new ConfirmModal(this.app)
+          .setMessage('This will replace all AsciiMath blocks with LaTeX math blocks (dollar-sign blocks). This action can be undone only right after the convertion')
+          .onConfirm(() => {
+            const file = this.app.workspace.getActiveFile()
+            // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+            this.convertAsciiMathInFile(file!)
+          })
+          .open()
+      },
+    })
+
+    this.addCommand({
+      id: 'convert-am-block-into-mathjax-in-vault',
+      name: 'Convert AsciiMath to LaTeX (entire vault)',
+      editorCallback: async () => {
+        new ConfirmModal(this.app)
+          .setMessage('This will replace all AsciiMath blocks with LaTeX math blocks in the entire vault. THIS ACTION CANNOT BE UNDONE')
+          .onConfirm(() => {
+            this.app.vault.getMarkdownFiles().forEach(f => this.convertAsciiMathInFile(f))
+          })
+          .open()
       },
     })
 
@@ -133,57 +154,35 @@ export default class AsciiMathPlugin extends Plugin {
     console.log('Obsidian asciimath loaded')
   }
 
-  editorTransactionConvertFormula(editor: Editor) {
-    const content = editor.getValue()
+  // This function reads raw text from the `file` and then replaces AsciiMath blocks (both display & inline) with
+  // default obsidian math blocks with LaTeX in them.
+  async convertAsciiMathInFile(file: TFile) {
+    let content = await this.app.vault.read(file)
     const blockReg = new RegExp(`((\`|~){3,})(${this.settings.blockPrefix.join('|')})([\\s\\S]*?)\\n\\1`, 'gm')
     const [open, close] = Object.values(this.settings.inline).map(normalizeEscape)
     const inlineReg = new RegExp(`${open}(.*?)${close}`, 'g')
-    const changes: EditorChange[] = []
 
     try {
       const blockIterator = content.matchAll(blockReg)
       let match: IteratorResult<RegExpMatchArray>
       // eslint-disable-next-line no-cond-assign
       while (!(match = blockIterator.next()).done) {
-        const index = match.value.index
-        if (typeof index === 'undefined')
-          throw new Error('Invalid index: while converting block fomula')
-        const amContent = match.value[4]
-        if (typeof amContent !== 'string')
-          throw new Error(`Invalid asciimath formula, index: ${index}`)
-        const from = editor.offsetToPos(index)
-        const to = editor.offsetToPos(index + match.value[0].length)
-        changes.push({
-          text: `$$\n${toTex(this.AM, amContent)}\n$$`,
-          from,
-          to,
-        })
+        const block = match.value[0]
+        const blockContent = match.value[4]
+        // Four dollar signes are needed because '$$' gets replaced with '$' when using JS .replace() method.
+        content = content.replace(block, `$$$$\n${toTex(this.AM, blockContent)}\n$$$$`)
       }
 
-      const inlineIterator = content.matchAll(inlineReg)
+      const inlineBlockIterator = content.matchAll(inlineReg)
       // eslint-disable-next-line no-cond-assign
-      while (!(match = inlineIterator.next()).done) {
-        const index = match.value.index
-        if (typeof index === 'undefined')
-          throw new Error('Invalid index: while converting inline formula')
-        const amContent = match.value[1]
-        if (typeof amContent !== 'string')
-          throw new Error(`Invalid asciimath formula, index: ${index}`)
-        const from = editor.offsetToPos(index)
-        const to = editor.offsetToPos(index + match.value[0].length)
-        changes.push({
-          text: `$${toTex(this.AM, amContent)}$`,
-          from,
-          to,
-        })
+      while (!(match = inlineBlockIterator.next()).done) {
+        const block = match.value[0]
+        const blockContent = match.value[1]
+        // Four dollar signes are needed because '$$' gets replaced with '$' when using JS .replace() method.
+        content = content.replace(block, `$$${toTex(this.AM, blockContent)}$$`)
       }
-      if (changes.length === 0) {
-        new Notice('No asciimath formulas converted!')
-        return
-      }
-      // Batch transaction
-      editor.transaction({ changes })
-      new Notice(`Successfully converted ${changes.length} asciimath formulas!`)
+
+      await this.app.vault.modify(file, content)
     }
     catch (e) {
       new Notice(String(e))
@@ -295,6 +294,54 @@ function validateSettings(settings: AsciiMathSettings): { isValid: boolean; mess
   }
 }
 
+// Confirm modal is used to confirm the action. It'll call onConfirm callback if the action submit button is pressed.
+class ConfirmModal extends Modal {
+  message: string
+  confirmHandler: () => void
+
+  constructor(app: App) {
+    super(app)
+  }
+
+  setMessage(message: string): ConfirmModal {
+    this.message = message
+    return this
+  }
+
+  onConfirm(f: () => void): ConfirmModal {
+    this.confirmHandler = f
+    return this
+  }
+
+  onOpen() {
+    const { contentEl, titleEl } = this
+
+    titleEl.setText('Are you sure?')
+
+    new Setting(contentEl).setDesc(this.message)
+    new Setting(contentEl)
+      .addButton(btn =>
+        btn
+          .setButtonText('Cancel')
+          .onClick(() => {
+            this.close()
+          }))
+      .addButton(btn =>
+        btn
+          .setButtonText('Continue')
+          .setCta()
+          .onClick(() => {
+            this.close()
+            this.confirmHandler()
+          }))
+  }
+
+  onClose() {
+    const { contentEl } = this
+    contentEl.empty()
+  }
+}
+
 class AsciiMathSettingTab extends PluginSettingTab {
   plugin: AsciiMathPlugin
 
@@ -323,6 +370,24 @@ class AsciiMathSettingTab extends PluginSettingTab {
         }, 1000)))
 
     new Setting(containerEl)
+      .setName('Custom symbols')
+      .setDesc('Transforms custom symbols into LaTeX symbols. One row for each rule.')
+      .addTextArea((text) => {
+        const el = text
+          .setPlaceholder('symbol1, \\LaTeXSymbol1\nsymbol2, \\LaTeXSymbol2\n...')
+          .setValue(this.plugin.settings.customSymbols.map(r => r.join(', ')).join('\n'))
+          .onChange(debounce((value) => {
+            this.plugin.settings.customSymbols = value.split('\n').map(r => r.split(',').map(s => s.trim()).filter(Boolean)).filter(l => l.length)
+          }, 1000))
+        el.inputEl.addClass('__asciimath_settings_custom-symbols')
+      })
+
+    new Setting(containerEl)
+      .setHeading()
+      .setName('Inline code math (deprecated)')
+      .setDesc('This settings will be removed in the next version of the plugin')
+
+    new Setting(containerEl)
       .setName('Inline asciimath start')
       .setDesc('The leading escape of the inline asciimath formula. It should starts with **only one backtick**.')
       .addText(text => text
@@ -341,19 +406,6 @@ class AsciiMathSettingTab extends PluginSettingTab {
         .onChange(debounce((value) => {
           this.plugin.settings.inline.close = value
         }, 1000)))
-
-    new Setting(containerEl)
-      .setName('Custom symbols')
-      .setDesc('Transforms custom symbols into LaTeX symbols. One row for each rule.')
-      .addTextArea((text) => {
-        const el = text
-          .setPlaceholder('symbol1, \\LaTeXSymbol1\nsymbol2, \\LaTeXSymbol2\n...')
-          .setValue(this.plugin.settings.customSymbols.map(r => r.join(', ')).join('\n'))
-          .onChange(debounce((value) => {
-            this.plugin.settings.customSymbols = value.split('\n').map(r => r.split(',').map(s => s.trim()).filter(Boolean)).filter(l => l.length)
-          }, 1000))
-        el.inputEl.addClass('__asciimath_settings_custom-symbols')
-      })
 
     new Setting(containerEl)
       .setName('Don\'t forget to save and reload settings →')
