@@ -12,6 +12,18 @@ I've recently refactored the library, and you can refer to [asciimath-parser](ht
 
 **Warning**: Some of the rules are not exactly consistent with http://asciimath.org, especially the matrix. For more information, please refer to https://asciimath.widcard.win.
 
+
+#### Migrating from notes created with plugin version version 0.6.3 or lower.
+
+In previous version of the plugin users had to use this special syntax for inline math. This feature is deprecated is will be removed in the future.
+> Note: default code blocks with three backticks will be supported as usual.
+
+To prepare your notes for the newer version of the plugin, you must convert your old AsciiMath notes to LaTeX. You can do this by using commands:
+- Hit `Ctrl + P` to open up command pallet.
+- Search for "Convert AsciiMath to LaTeX". Choose one of the two available commands by the "obsidian-asciimath" plugin.
+- Confirm the changes.
+- You're good to go!
+
 #### Code block
 
 ~~~text
@@ -43,53 +55,17 @@ x & |-> "e"^(2pi "i" x)
 > \end{aligned}
 > ```
 
-#### Inline asciimath
+#### Using dollar-sign math blocks.
+Default obsidian math is wrapped in `$` on both ends for the inline math with `$$` for the display-style block.  
+You can enable "Replace math block" in the plugin settings which allows the plugin to render AsciiMath inside of dollar-sign blocks.
+> The neat part is that you can keep your LaTeX math blocks as they are, because the plugin is smart enough to guess which syntax is used for a particular block.
 
-By default, the inline formula should be wrapped with \`\$ and \$\`, that is, you should input the formula like
-
-```markdown
-The integral `$int _0^(+oo) "e"^(-x) dx = 1$`.
-```
-
-![](screenshots/inline.png)
-
-## Configuration
-
-You can add other prefix alias of code block in the settings. The default values are `asciimath` and `am`.
-
-Inline formula **can only** be wrapped with special escapes. Just look at the examples below.
-
-```diff
-- start: ``   !!! invalid !!!
-- end:   ``   !!! invalid !!!
-
-- start: `    !!! invalid !!!
-- end:   `    !!! invalid !!!
-
-+ start: `$   √√√  valid  √√√  // default
-+ end:   $`   √√√  valid  √√√  // default
-
-+ start: `$$  √√√  valid  √√√
-+ end:   $$`  √√√  valid  √√√
-
-+ start: `*   √√√  valid  √√√
-+ end:   *`   √√√  valid  √√√
-
-+ start: `{   √√√  valid  √√√
-+ end:   }`   √√√  valid  √√√
-
-+ start: `[   √√√  valid  √√√
-+ end:   ]`   √√√  valid  √√√
-
-(... any other valid escapes ...)
-```
-
-After changing the settings, **DON'T FORGET to hit the "Save" button**.
 
 ## Commands
 
 - Insert asciimath codeblock
 - Convert asciimath into mathjax in current file
+- Convert asciimath into mathjax in the entire vault.
 
 ![](screenshots/out.gif)
 
