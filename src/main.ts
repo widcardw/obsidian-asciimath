@@ -26,6 +26,7 @@ import { inlinePlugin } from './inline'
 interface AsciiMathSettings {
   blockPrefix: string[]
   replaceMathBlock: boolean
+  disableDeprecationWarning: boolean
   inline: {
     open: string
     close: string
@@ -35,6 +36,7 @@ interface AsciiMathSettings {
 
 const DEFAULT_SETTINGS: AsciiMathSettings = {
   blockPrefix: ['asciimath', 'am'],
+  disableDeprecationWarning: false,
   replaceMathBlock: true,
   inline: {
     open: '`$',
@@ -97,15 +99,14 @@ export default class AsciiMathPlugin extends Plugin {
 
     // Deprecation warning for the inline math syntax
     this.app.workspace.on('file-open', async (file) => {
-      if (!file)
+      if (!file || this.settings.disableDeprecationWarning)
         return
 
       const content = await this.app.vault.read(file)
-
       const [open, close] = Object.values(this.settings.inline).map(normalizeEscape)
       const inlineReg = new RegExp(`${open}(.*?)${close}`, 'g')
       if (inlineReg.test(content))
-        new Notice('Inline math with single backticks is deprecated. Refer to the plugin description to fix this issue', 20)
+        new Notice('Obsidian AsciiMath:\n\nInline math with single backticks is deprecated. Refer to the plugin description to fix this issue.\nYou also can disable this warning in the plugin settings.\n\nClick here to dismiss this message', 0)
     })
 
     // register processor in live preview mode
@@ -433,6 +434,17 @@ class AsciiMathSettingTab extends PluginSettingTab {
       .setHeading()
       .setName('Inline code math (deprecated)')
       .setDesc('These settings will be removed in the next version of the plugin')
+
+    new Setting(containerEl)
+      .setName('Disable deprecation warning')
+      .setDesc('Note: ignoring deprecation issues may make the plugin unusable with existing notes in the future.')
+      .addToggle((toggle) => {
+        toggle
+          .setValue(this.plugin.settings.disableDeprecationWarning)
+          .onChange((v) => {
+            this.plugin.settings.disableDeprecationWarning = v
+          })
+      })
 
     new Setting(containerEl)
       .setName('Inline asciimath start')
