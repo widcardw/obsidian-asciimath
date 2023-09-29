@@ -13,9 +13,9 @@ I've recently refactored the library, and you can refer to [asciimath-parser](ht
 **Warning**: Some of the rules are not exactly consistent with http://asciimath.org, especially the matrix. For more information, please refer to https://asciimath.widcard.win.
 
 
-#### Migrating from notes created with plugin version version 0.6.3 or lower.
+### Migrating from notes created with plugin version 0.6.3 or lower.
 
-In previous version of the plugin users had to use this special syntax for inline math. This feature is deprecated is will be removed in the future.
+In previous versions of the plugin users had to use this special syntax for inline math. This feature is deprecated and will be removed in the future.
 > Note: default code blocks with three backticks will be supported as usual.
 
 To prepare your notes for the newer version of the plugin, you must convert your old AsciiMath notes to LaTeX. You can do this by using commands:
@@ -56,8 +56,8 @@ x & |-> "e"^(2pi "i" x)
 > ```
 
 #### Using dollar-sign math blocks.
-Default obsidian math is wrapped in `$` on both ends for the inline math with `$$` for the display-style block.  
-You can enable "Replace math block" in the plugin settings which allows the plugin to render AsciiMath inside of dollar-sign blocks.
+Default obsidian math is wrapped in `$` on both ends for the inline math and with `$$` for the display-style block.  
+You can enable "Replace math block" option in the plugin settings which allows the plugin to render AsciiMath inside of dollar-sign blocks.
 > The neat part is that you can keep your LaTeX math blocks as they are, because the plugin is smart enough to guess which syntax is used for a particular block.
 
 
