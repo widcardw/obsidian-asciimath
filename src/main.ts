@@ -145,10 +145,11 @@ export default class AsciiMathPlugin extends Plugin {
       callback: async () => {
         new ConfirmModal(this.app)
           .setMessage('This will replace all AsciiMath blocks with LaTeX math blocks (dollar-sign blocks). This action can be undone only right after the convertion')
-          .onConfirm(() => {
+          .onConfirm(async () => {
             const file = this.app.workspace.getActiveFile()
             // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
-            this.convertAsciiMathInFile(file!)
+            const { block, inline } = await this.convertAsciiMathInFile(file!)
+            new Notice(`Converted ${block} blocks and ${inline} inline formulas.`)
           })
           .open()
       },
@@ -160,8 +161,18 @@ export default class AsciiMathPlugin extends Plugin {
       callback: async () => {
         new ConfirmModal(this.app)
           .setMessage('This will replace all AsciiMath blocks with LaTeX math blocks in the entire vault. THIS ACTION CANNOT BE UNDONE')
-          .onConfirm(() => {
-            this.app.vault.getMarkdownFiles().forEach(f => this.convertAsciiMathInFile(f))
+          .onConfirm(async () => {
+            // convert all the asciimath formulas in vault
+            const allConvertionRes = await Promise.all(this.app.vault.getMarkdownFiles().map(async (f) => {
+              const convertionRes = await this.convertAsciiMathInFile(f)
+              return { ...convertionRes, hasAsciimath: convertionRes.block || convertionRes.inline }
+            }))
+            // calculate number of blocks and inline ones that converted in files
+            const { block, inline, fileNum } = allConvertionRes.reduce((x, y) => {
+              return { block: x.block + y.block, inline: x.inline + y.inline, fileNum: x.fileNum + y.hasAsciimath }
+            }, { block: 0, inline: 0, fileNum: 0 })
+
+            new Notice(`Converted ${block} blocks and ${inline} inline formulas in ${fileNum} file${fileNum > 1 ? 's' : ''}.`)
           })
           .open()
       },
@@ -193,6 +204,7 @@ export default class AsciiMathPlugin extends Plugin {
   // default obsidian math blocks with LaTeX in them.
   // TODO: Should be removed in next major release?
   async convertAsciiMathInFile(file: TFile) {
+    const convertionRes = { block: 0, inline: 0 }
     let content = await this.app.vault.read(file)
     const blockReg = new RegExp(`((\`|~){3,})(${this.settings.blockPrefix.join('|')})([\\s\\S]*?)\\n\\1`, 'gm')
     const [open, close] = Object.values(this.settings.inline).map(normalizeEscape)
@@ -207,6 +219,7 @@ export default class AsciiMathPlugin extends Plugin {
         const blockContent = match.value[4]
         // Four dollar signes are needed because '$$' gets replaced with '$' when using JS .replace() method.
         content = content.replace(block, `$$$$\n${toTex(this.AM, blockContent)}\n$$$$`)
+        convertionRes.block++
       }
 
       const inlineBlockIterator = content.matchAll(inlineReg)
@@ -216,6 +229,7 @@ export default class AsciiMathPlugin extends Plugin {
         const blockContent = match.value[1]
         // Four dollar signes are needed because '$$' gets replaced with '$' when using JS .replace() method.
         content = content.replace(block, `$$${toTex(this.AM, blockContent)}$$`)
+        convertionRes.inline++
       }
 
       await this.app.vault.modify(file, content)
@@ -223,6 +237,7 @@ export default class AsciiMathPlugin extends Plugin {
     catch (e) {
       new Notice(String(e))
     }
+    return convertionRes
   }
 
   registerAsciiMathCodeBlock(prefix: string) {

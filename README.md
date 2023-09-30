@@ -63,8 +63,8 @@ You can enable "Replace math block" option in the plugin settings which allows t
 
 ## Commands
 
-- Insert asciimath codeblock
-- Convert asciimath into mathjax in current file
+- Insert asciimath codeblock.
+- Convert asciimath into mathjax in current file.
 - Convert asciimath into mathjax in the entire vault.
 
 ![](screenshots/out.gif)
