@@ -41,6 +41,9 @@ devDependencies:
   obsidian:
     specifier: latest
     version: 1.4.11(@codemirror/state@6.1.2)(@codemirror/view@6.4.1)
+  ts-dedent:
+    specifier: ^2.2.0
+    version: 2.2.0
   tslib:
     specifier: 2.4.0
     version: 2.4.0
@@ -2501,6 +2504,11 @@ packages:
     engines: {node: '>=8.0'}
     dependencies:
       is-number: 7.0.0
+    dev: true
+
+  /ts-dedent@2.2.0:
+    resolution: {integrity: sha512-q5W7tVM71e2xjHZTlgfTDoPF/SmqKG5hddq9SzR49CH2hayqRKJtQ4mtRlSxKaJlR/+9rEM+mnBHf7I2/BQcpQ==}
+    engines: {node: '>=6.10'}
     dev: true
 
   /tsconfig-paths@3.14.1:

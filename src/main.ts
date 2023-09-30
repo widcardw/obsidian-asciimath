@@ -19,6 +19,7 @@ import {
   renderMath,
 } from 'obsidian'
 
+import dedent from 'ts-dedent'
 import { AsciiMath, TokenTypes } from 'asciimath-parser'
 import { isLatexCode, normalizeEscape } from './utils'
 import { inlinePlugin } from './inline'
@@ -32,6 +33,11 @@ interface AsciiMathSettings {
     close: string
   }
   customSymbols: RuleType
+}
+
+enum ConvertTarget {
+  Asciimath = 'Asciimath',
+  Tex = 'Tex',
 }
 
 const DEFAULT_SETTINGS: AsciiMathSettings = {
@@ -142,40 +148,43 @@ export default class AsciiMathPlugin extends Plugin {
     this.addCommand({
       id: 'convert-am-block-into-mathjax-in-current-file',
       name: 'Convert AsciiMath to LaTeX (active file)',
-      callback: async () => {
-        new ConfirmModal(this.app)
-          .setMessage('This will replace all AsciiMath blocks with LaTeX math blocks (dollar-sign blocks). This action can be undone only right after the convertion')
-          .onConfirm(async () => {
-            const file = this.app.workspace.getActiveFile()
-            // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
-            const { block, inline } = await this.convertAsciiMathInFile(file!)
-            new Notice(`Converted ${block} blocks and ${inline} inline formulas.`)
-          })
-          .open()
-      },
+      callback: this.actionConvertActiveFile(
+        ConvertTarget.Tex,
+        'This will replace all AsciiMath blocks with LaTeX math blocks in the active file. THIS ACTION CANNOT BE UNDONE.',
+      ),
+    })
+
+    this.addCommand({
+      id: 'convert-am-inline-into-new-syntax-in-current-file',
+      name: 'Convert old syntax of asciimath to new syntax (active file)',
+      callback: this.actionConvertActiveFile(
+        ConvertTarget.Asciimath,
+        dedent`
+        This will replace all Asciimath formulas of old syntax (like \`\$ and \$\`) with new syntax (wrapped with dollar signs),
+        which is more convenient to use.
+        THIS ACTION CANNOT BE UNDONE.`,
+      ),
     })
 
     this.addCommand({
       id: 'convert-am-block-into-mathjax-in-vault',
       name: 'Convert AsciiMath to LaTeX (entire vault)',
-      callback: async () => {
-        new ConfirmModal(this.app)
-          .setMessage('This will replace all AsciiMath blocks with LaTeX math blocks in the entire vault. THIS ACTION CANNOT BE UNDONE')
-          .onConfirm(async () => {
-            // convert all the asciimath formulas in vault
-            const allConvertionRes = await Promise.all(this.app.vault.getMarkdownFiles().map(async (f) => {
-              const convertionRes = await this.convertAsciiMathInFile(f)
-              return { ...convertionRes, hasAsciimath: convertionRes.block || convertionRes.inline }
-            }))
-            // calculate number of blocks and inline ones that converted in files
-            const { block, inline, fileNum } = allConvertionRes.reduce((x, y) => {
-              return { block: x.block + y.block, inline: x.inline + y.inline, fileNum: x.fileNum + y.hasAsciimath }
-            }, { block: 0, inline: 0, fileNum: 0 })
+      callback: this.actionConvertEntileVault(
+        ConvertTarget.Tex,
+        'This will replace all AsciiMath formulas with LaTeX math blocks in the entire vault. THIS ACTION CANNOT BE UNDONE.',
+      ),
+    })
 
-            new Notice(`Converted ${block} blocks and ${inline} inline formulas in ${fileNum} file${fileNum > 1 ? 's' : ''}.`)
-          })
-          .open()
-      },
+    this.addCommand({
+      id: 'convert-am-inline-into-new-syntax-in-vault',
+      name: 'Convert old syntax of asciimath to new syntax (entire vault)',
+      callback: this.actionConvertEntileVault(
+        ConvertTarget.Asciimath,
+        dedent`
+        This will replace all Asciimath formulas of old syntax (like \`\$ and \$\`) with new syntax (wrapped with dollar signs),
+        which is more convenient to use.
+        THIS ACTION CANNOT BE UNDONE.`,
+      ),
     })
 
     // This adds a settings tab so the user can configure various aspects of the plugin
@@ -183,6 +192,39 @@ export default class AsciiMathPlugin extends Plugin {
 
     // eslint-disable-next-line no-console
     console.log('Obsidian asciimath loaded')
+  }
+
+  // Receive the parameter and judge whether to convert to LaTeX (target: Tex) or remain as AsciiMath (target: Asciimath)
+  actionConvertActiveFile(target: ConvertTarget, message: string) {
+    return async () => new ConfirmModal(this.app)
+      .setMessage(message)
+      .onConfirm(async () => {
+        const file = this.app.workspace.getActiveFile()
+        // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+        const { block, inline } = await this.convertAsciiMathInFile(file!, target)
+        new Notice(`Converted ${block} blocks and ${inline} inline formulas.`)
+      })
+      .open()
+  }
+
+  // Receive the parameter and judge whether to convert to LaTeX (target: Tex) or remain as AsciiMath (target: Asciimath)
+  actionConvertEntileVault(target: ConvertTarget, message: string) {
+    return async () => new ConfirmModal(this.app)
+      .setMessage(message)
+      .onConfirm(async () => {
+        // convert all the asciimath formulas in vault
+        const allConvertionRes = await Promise.all(this.app.vault.getMarkdownFiles().map(async (f) => {
+          const convertionRes = await this.convertAsciiMathInFile(f, target)
+          return { ...convertionRes, hasAsciimath: convertionRes.block || convertionRes.inline }
+        }))
+        // calculate number of blocks and inline ones that converted in files
+        const { block, inline, fileNum } = allConvertionRes.reduce((x, y) => {
+          return { block: x.block + y.block, inline: x.inline + y.inline, fileNum: x.fileNum + y.hasAsciimath }
+        }, { block: 0, inline: 0, fileNum: 0 })
+
+        new Notice(`Converted ${block} blocks and ${inline} inline formulas in ${fileNum} file${fileNum > 1 ? 's' : ''}.`)
+      })
+      .open()
   }
 
   // This will hijack function that is used for by obsidian for rendering math.
@@ -203,7 +245,7 @@ export default class AsciiMathPlugin extends Plugin {
   // This function reads raw text from the `file` and then replaces AsciiMath blocks (both display & inline) with
   // default obsidian math blocks with LaTeX in them.
   // TODO: Should be removed in next major release?
-  async convertAsciiMathInFile(file: TFile) {
+  async convertAsciiMathInFile(file: TFile, target: ConvertTarget) {
     const convertionRes = { block: 0, inline: 0 }
     let content = await this.app.vault.read(file)
     const blockReg = new RegExp(`((\`|~){3,})(${this.settings.blockPrefix.join('|')})([\\s\\S]*?)\\n\\1`, 'gm')
@@ -217,8 +259,9 @@ export default class AsciiMathPlugin extends Plugin {
       while (!(match = blockIterator.next()).done) {
         const block = match.value[0]
         const blockContent = match.value[4]
+        const innerContent = target === ConvertTarget.Tex ? toTex(this.AM, blockContent) : blockContent.trim()
         // Four dollar signes are needed because '$$' gets replaced with '$' when using JS .replace() method.
-        content = content.replace(block, `$$$$\n${toTex(this.AM, blockContent)}\n$$$$`)
+        content = content.replace(block, `$$$$\n${innerContent}\n$$$$`)
         convertionRes.block++
       }
 
@@ -227,8 +270,9 @@ export default class AsciiMathPlugin extends Plugin {
       while (!(match = inlineBlockIterator.next()).done) {
         const block = match.value[0]
         const blockContent = match.value[1]
+        const innerContent = target === ConvertTarget.Tex ? toTex(this.AM, blockContent) : blockContent
         // Four dollar signes are needed because '$$' gets replaced with '$' when using JS .replace() method.
-        content = content.replace(block, `$$${toTex(this.AM, blockContent)}$$`)
+        content = content.replace(block, `$$${innerContent}$$`)
         convertionRes.inline++
       }
 
