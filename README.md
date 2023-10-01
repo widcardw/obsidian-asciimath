@@ -13,16 +13,30 @@ I've recently refactored the library, and you can refer to [asciimath-parser](ht
 **Warning**: Some of the rules are not exactly consistent with http://asciimath.org, especially the matrix. For more information, please refer to https://asciimath.widcard.win.
 
 
-### Migrating from notes created with plugin version 0.6.3 or lower.
+### ⚠️ Migrating from notes created with plugin version 0.6.3 or lower. ⚠️
+If you never used AsciiMath before, you can skip this section.
+<details>
+<summary>Click to see instructions</summary>
 
 In previous versions of the plugin users had to use this special syntax for inline math. This feature is deprecated and will be removed in the future.
 > Note: default code blocks with three backticks will be supported as usual.
 
-To prepare your notes for the newer version of the plugin, you must convert your old AsciiMath notes to LaTeX. You can do this by using commands:
+New syntax integrates with default Obsidian [math blocks](https://help.obsidian.md/Editing+and+formatting/Advanced+formatting+syntax#Math) (dollar-sign blocks), which fully compatible when using both LaTeX and AsciiMath.
+
+From now on, you should create inline blocks like this:
+```diff
+++ $<my_ascii_math>$
+instead of
+-- `$ <my_ascii_math> $`
+```
+
+To prepare your notes for the newer version of the plugin, you must convert your old AsciiMath notes to new syntax. This can be easily done with plugin commands:
 - Hit `Ctrl + P` to open up command pallet.
-- Search for "Convert AsciiMath to LaTeX". Choose one of the two available commands by the "obsidian-asciimath" plugin.
+- Search for "Convert to new syntax". Choose one of the two available commands by the "obsidian-asciimath" plugin.
 - Confirm the changes.
 - You're good to go!
+</details>
+
 
 #### Code block
 
@@ -66,6 +80,8 @@ You can enable "Replace math block" option in the plugin settings which allows t
 - Insert asciimath codeblock.
 - Convert asciimath into mathjax in current file.
 - Convert asciimath into mathjax in the entire vault.
+- Convert asciimath blocks to new syntax in current file (Compatibilty with old version).
+- Convert asciimath blocks to new syntax in the entire vault (Compatibilty with old version).
 
 ![](screenshots/out.gif)
 

@@ -111,8 +111,16 @@ export default class AsciiMathPlugin extends Plugin {
       const content = await this.app.vault.read(file)
       const [open, close] = Object.values(this.settings.inline).map(normalizeEscape)
       const inlineReg = new RegExp(`${open}(.*?)${close}`, 'g')
-      if (inlineReg.test(content))
-        new Notice('Obsidian AsciiMath:\n\nInline math with single backticks is deprecated. Refer to the plugin description to fix this issue.\nYou also can disable this warning in the plugin settings.\n\nClick here to dismiss this message', 0)
+      if (inlineReg.test(content)) {
+        new Notice(dedent`
+          Obsidian AsciiMath:
+          
+          Inline math with single backticks is deprecated. Refer to the plugin description to fix this issue.
+          You also can disable this warning in the plugin settings.
+          
+          Click here to dismiss this message.
+        `, 0)
+      }
     })
 
     // register processor in live preview mode
