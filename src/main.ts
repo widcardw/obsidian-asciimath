@@ -150,10 +150,10 @@ export default class AsciiMathPlugin extends Plugin {
       if (inlineReg.test(content)) {
         new Notice(dedent`
           Obsidian AsciiMath:
-          
+
           Inline math with single backticks is deprecated. Refer to the plugin description to fix this issue.
           You also can disable this warning in the plugin settings.
-          
+
           Click here to dismiss this message.
         `, 0)
       }
@@ -215,7 +215,7 @@ export default class AsciiMathPlugin extends Plugin {
 
     this.addCommand({
       id: 'convert-am-inline-into-new-syntax-in-vault',
-      name: ' (entire vault)',
+      name: 'Update old AsciiMath (entire vault)',
       callback: this.actionConvertEntireVault(
         ConvertTarget.Asciimath,
         dedent`
