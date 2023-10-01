@@ -169,7 +169,7 @@ export default class AsciiMathPlugin extends Plugin {
     this.addCommand({
       id: 'convert-am-block-into-mathjax-in-vault',
       name: 'Convert AsciiMath to LaTeX (entire vault)',
-      callback: this.actionConvertEntileVault(
+      callback: this.actionConvertEntireVault(
         ConvertTarget.Tex,
         'This will replace all AsciiMath formulas with LaTeX math blocks in the entire vault. THIS ACTION CANNOT BE UNDONE.',
       ),
@@ -178,7 +178,7 @@ export default class AsciiMathPlugin extends Plugin {
     this.addCommand({
       id: 'convert-am-inline-into-new-syntax-in-vault',
       name: 'Convert math blocks to new syntax (entire vault)',
-      callback: this.actionConvertEntileVault(
+      callback: this.actionConvertEntireVault(
         ConvertTarget.Asciimath,
         dedent`
         This will replace all Asciimath formulas of old syntax (like \`\$ and \$\`) with new syntax (wrapped with dollar signs),
@@ -208,7 +208,7 @@ export default class AsciiMathPlugin extends Plugin {
   }
 
   // Receive the parameter and judge whether to convert to LaTeX (target: Tex) or remain as AsciiMath (target: Asciimath)
-  actionConvertEntileVault(target: ConvertTarget, message: string) {
+  actionConvertEntireVault(target: ConvertTarget, message: string) {
     return async () => new ConfirmModal(this.app)
       .setMessage(message)
       .onConfirm(async () => {
