@@ -1,6 +1,6 @@
 import type { App } from 'obsidian'
 import { Notice, PluginSettingTab, Setting, debounce } from 'obsidian'
-import { AsciiMath } from 'asciimath-parser/index'
+import { AsciiMath } from 'asciimath-parser'
 import type AsciiMathPlugin from './main'
 
 type RuleType = string[][]
