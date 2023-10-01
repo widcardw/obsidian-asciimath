@@ -228,6 +228,7 @@ export default class AsciiMathPlugin extends Plugin {
 
     this.addCommand({
       id: 'asciimath-insert-symbol',
+      icon: 'sigma',
       name: 'Insert AsciiMath symbol',
       editorCallback: (editor) => {
         const modal = new SymbolSearchModal(this.app)
