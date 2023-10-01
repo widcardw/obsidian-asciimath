@@ -139,7 +139,7 @@ export default class AsciiMathPlugin extends Plugin {
         const modal = new Modal(this.app)
         modal.titleEl.setText('This command is deprecated')
 
-        new Setting(modal.contentEl).setName('It is advised to convert your AsciiMath blocks to LaTeX using "Convert AsciiMath to LaTeX" commands, enable "Replace math blocks" in the plugin settings and proceed with using default obsidian dollar-sign blocks with AsciiMath syntax')
+        new Setting(modal.contentEl).setName('It is advised to convert your old AsciiMath blocks to new syntax using "Convert math blocks to new syntax" commands and proceed using default obsidian dollar-sign blocks with AsciiMath syntax')
 
         modal.open()
       },
@@ -156,7 +156,7 @@ export default class AsciiMathPlugin extends Plugin {
 
     this.addCommand({
       id: 'convert-am-inline-into-new-syntax-in-current-file',
-      name: 'Convert old syntax of asciimath to new syntax (active file)',
+      name: 'Convert math blocks to new syntax (active file)',
       callback: this.actionConvertActiveFile(
         ConvertTarget.Asciimath,
         dedent`
@@ -177,7 +177,7 @@ export default class AsciiMathPlugin extends Plugin {
 
     this.addCommand({
       id: 'convert-am-inline-into-new-syntax-in-vault',
-      name: 'Convert old syntax of asciimath to new syntax (entire vault)',
+      name: 'Convert math blocks to new syntax (entire vault)',
       callback: this.actionConvertEntileVault(
         ConvertTarget.Asciimath,
         dedent`
