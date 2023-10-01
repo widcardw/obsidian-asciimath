@@ -11,3 +11,14 @@ If your plugin does not need CSS, delete this file.
   height: 100px;
   font-family: var(--font-monospace), 'Courier New', Courier, monospace;
 }
+
+.__asciimath-symbol-search-result {
+  display: flex;
+  justify-content: space-between;
+}
+
+.__asciimath-symbol-search-preview {
+  font-size: 1.5rem;
+  display: flex;
+  align-items: center;
+}

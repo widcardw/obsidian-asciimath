@@ -22,6 +22,7 @@ import { isLatexCode, normalizeEscape } from './utils'
 import { inlinePlugin } from './inline'
 import { AsciiMathSettingTab, type AsciiMathSettings } from './settings'
 import { ConfirmModal } from './confirm-modal'
+import { SymbolSearchModal } from './symbol-search/modal'
 
 enum ConvertTarget {
   Asciimath = 'Asciimath',
@@ -223,6 +224,19 @@ export default class AsciiMathPlugin extends Plugin {
         which is more convenient to use.
         THIS ACTION CANNOT BE UNDONE.`,
       ),
+    })
+
+    this.addCommand({
+      id: 'asciimath-insert-symbol',
+      name: 'Insert AsciiMath symbol',
+      editorCallback: (editor) => {
+        const modal = new SymbolSearchModal(this.app)
+        modal.setPlaceholder('Start typing AsciiMath or LaTeX symbol name')
+        modal.onSelected((sym) => {
+          editor.replaceSelection(sym)
+        })
+        modal.open()
+      },
     })
 
     // TODO: Should be removed in favor of default math blocks
