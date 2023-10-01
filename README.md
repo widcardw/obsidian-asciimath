@@ -32,7 +32,7 @@ instead of
 
 To prepare your notes for the newer version of the plugin, you must convert your old AsciiMath notes to new syntax. This can be easily done with plugin commands:
 - Hit `Ctrl + P` to open up command pallet.
-- Search for "Convert to new syntax". Choose one of the two available commands by the "obsidian-asciimath" plugin.
+- Search for "Update old AsciiMath". Choose one of the two available commands by the "obsidian-asciimath" plugin.
 - Confirm the changes.
 - You're good to go!
 </details>
