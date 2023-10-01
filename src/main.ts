@@ -271,8 +271,10 @@ export default class AsciiMathPlugin extends Plugin {
         const block = match.value[0]
         const blockContent = match.value[1]
         const innerContent = target === ConvertTarget.Tex ? toTex(this.AM, blockContent) : blockContent
-        // Four dollar signes are needed because '$$' gets replaced with '$' when using JS .replace() method.
-        content = content.replace(block, `$$${innerContent}$$`)
+        // innerContent is trimmed because obsidian recognizes inline blocks only when code there's no space around the code.
+        // $ code $ -> not a math block
+        // $code$ -> math block
+        content = content.replace(block, `$$${innerContent.trim()}$$`)
         convertionRes.inline++
       }
 
