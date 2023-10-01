@@ -10,7 +10,8 @@
 You can write math formulas with the syntax of [asciimath](http://asciimath.org).
 I've recently refactored the library, and you can refer to [asciimath-parser](https://github.com/widcardw/asciimath-parser) and [its online demo](https://asciimath.widcard.win).
 
-**Warning**: Some of the rules are not exactly consistent with http://asciimath.org, especially the matrix. For more information, please refer to https://asciimath.widcard.win.
+> [!WARNING]
+> Some of the rules are not exactly consistent with http://asciimath.org, especially the matrix. For more information, please refer to https://asciimath.widcard.win.
 
 
 ### ⚠️ Migrating from notes created with plugin version 0.6.3 or lower. ⚠️
@@ -70,7 +71,7 @@ x & |-> "e"^(2pi "i" x)
 > ```
 
 #### Using dollar-sign math blocks.
-Default obsidian math is wrapped in `$` on both ends for the inline math and with `$$` for the display-style block.  
+Default obsidian math is wrapped in `$` on both ends for the inline math and with `$$` for the display-style block.
 You can enable "Replace math block" option in the plugin settings which allows the plugin to render AsciiMath inside of dollar-sign blocks.
 > The neat part is that you can keep your LaTeX math blocks as they are, because the plugin is smart enough to guess which syntax is used for a particular block.
 
@@ -80,8 +81,8 @@ You can enable "Replace math block" option in the plugin settings which allows t
 - Insert asciimath codeblock.
 - Convert asciimath into mathjax in current file.
 - Convert asciimath into mathjax in the entire vault.
-- Convert asciimath blocks to new syntax in current file (Compatibilty with old version).
-- Convert asciimath blocks to new syntax in the entire vault (Compatibilty with old version).
+- Update asciimath blocks to new syntax in current file (Compatibilty with old version).
+- Update asciimath blocks to new syntax in the entire vault (Compatibilty with old version).
 
 ![](screenshots/out.gif)
 
