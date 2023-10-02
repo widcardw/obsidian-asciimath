@@ -72,9 +72,6 @@ sum_(n=1)^oo 1/n^2 = pi^2/6
 The plugin ships with some handy commands for you:
 
 #### Select and insert AsciiMath symbol
-<details>
-<summary>Click to see showcase</summary>
-
 ##### How to use
 1. Hit `Ctrl + P`
 2. Search for `Insert AsciiMath symbol`
@@ -82,19 +79,19 @@ The plugin ships with some handy commands for you:
 4. Search for desired symbol
 5. Select it & hit enter.
 
+> [!Note]
 > Pro tip: You can assign a hotkey for this command to do this faster. My persolan preference is `Ctrl + M`
-</details>
 
 #### Insert asciimath codeblock.
 This will insert [code block](#code-block-math) around current selection.
 
 #### Convertion to LaTeX
-- Convert asciimath into mathjax in current file.
-- Convert asciimath into mathjax in the entire vault.
+- Convert AsciiMath into LaTeX in current file.
+- Convert AsciiMath into LaTeX in the entire vault.
 
-#### Migration commands
-- Update asciimath blocks to new syntax in current file (Compatibilty with old version).
-- Update asciimath blocks to new syntax in the entire vault (Compatibilty with old version).
+#### Notes update commands
+- Update asciimath blocks to new syntax in current file.
+- Update asciimath blocks to new syntax in the entire vault.
 
 <details>
 <summary>Click to see showcase for all of the commands above</summary>
