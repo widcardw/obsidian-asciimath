@@ -2,7 +2,8 @@ import { SuggestModal, finishRenderMath, renderMath } from 'obsidian'
 import symbols from './symbols.json'
 
 // First is the AsciiMath symbol, second is LaTeX alternative
-type AsciiMathSymbol = [string, string]
+// The third element is rendered as a preview
+type AsciiMathSymbol = [string, string] | [string, string, string]
 
 export class SymbolSearchModal extends SuggestModal<AsciiMathSymbol> {
   private callback: (sym: string) => void
@@ -14,7 +15,7 @@ export class SymbolSearchModal extends SuggestModal<AsciiMathSymbol> {
   }
 
   // Renders each suggestion item.
-  renderSuggestion([am, latex]: AsciiMathSymbol, el: HTMLElement) {
+  renderSuggestion([am, latex, toBeRendered]: AsciiMathSymbol, el: HTMLElement) {
     el.classList.add('__asciimath-symbol-search-result')
 
     const text = el.createDiv()
@@ -24,7 +25,7 @@ export class SymbolSearchModal extends SuggestModal<AsciiMathSymbol> {
     el.createDiv('__asciimath-symbol-search-preview math', (el) => {
       el.innerHTML = `
         <mjx-container class="MathJax" jax="CHTML">
-        ${renderMath(latex, false).innerHTML}
+        ${renderMath(typeof toBeRendered !== 'undefined' ? toBeRendered : latex, false).innerHTML}
         </mjx-container>
       `
       finishRenderMath()
