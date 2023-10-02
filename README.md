@@ -100,9 +100,6 @@ This will insert [code block](#code-block-math) around current selection.
 </details>
 
 ### Updating old notes
-If you never used AsciiMath before, you can skip this section.
-<details>
-<summary>Click to see instructions</summary>
 
 In previous versions of the plugin users had to use this special syntax for inline math. This feature is deprecated and will be removed in the future.
 > Note: default code blocks with three backticks will be supported as usual.
@@ -121,7 +118,7 @@ To prepare your notes for the newer version of the plugin, you must convert your
 - Search for "Update old AsciiMath". Choose one of the two available commands by the "obsidian-asciimath" plugin.
 - Confirm the changes.
 - You're good to go!
-</details>
+
 
 # Development
 
