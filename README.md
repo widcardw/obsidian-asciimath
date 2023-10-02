@@ -16,9 +16,9 @@ A handy plugin that integrates with default Obsidian math, bringing AsciiMath po
 - [Development](#development)
 
 > [!IMPORTANT]
-> Follow link below if you keep getting warning from the plugin
+> Follow link below if you keep getting depreciation warning from the plugin
 
-[⚠ Updating notes created with plugin version 0.6.3 and lower ⚠](#updating-old-notes)
+[Updating notes created with plugin version 0.6.3 and lower](#updating-old-notes)
 
 # Install
 
@@ -80,7 +80,7 @@ The plugin ships with some handy commands for you:
 5. Select it & hit enter.
 
 > [!Note]
-> Pro tip: You can assign a hotkey for this command to do this faster. My persolan preference is `Ctrl + M`
+> Pro tip: You can assign a hotkey for this command to do this faster. My personal preference is `Ctrl + M`
 
 #### Insert asciimath codeblock.
 This will insert [code block](#code-block-math) around current selection.
@@ -101,7 +101,7 @@ This will insert [code block](#code-block-math) around current selection.
 
 ### Updating old notes
 
-In previous versions of the plugin users had to use this special syntax for inline math. This feature is deprecated and will be removed in the future.
+In previous versions of the plugin users had to use special syntax for inline math. This feature is deprecated and will be removed in the future.
 > Note: default code blocks with three backticks will be supported as usual.
 
 New syntax integrates with default Obsidian [math blocks](https://help.obsidian.md/Editing+and+formatting/Advanced+formatting+syntax#Math) (dollar-sign blocks), which fully compatible when using both LaTeX and AsciiMath.
@@ -112,6 +112,7 @@ From now on, you should create inline blocks like this:
 instead of
 -- `$ <my_ascii_math> $`
 ```
+> For more on new syntax, refer to [this section](#dollar-sign-math-integration)
 
 To prepare your notes for the newer version of the plugin, you must convert your old AsciiMath notes to new syntax. This can be easily done with plugin commands:
 - Hit `Ctrl + P` to open up command pallet.
