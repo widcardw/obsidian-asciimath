@@ -22,3 +22,7 @@ If your plugin does not need CSS, delete this file.
   display: flex;
   align-items: center;
 }
+
+.__asciimath-symbol-search-placeholder {
+  opacity: 0.5;
+}
