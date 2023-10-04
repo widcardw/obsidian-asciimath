@@ -3,15 +3,18 @@ import symbols from './symbols.json'
 
 // First is the AsciiMath symbol, second is LaTeX alternative
 // The third element is rendered as a preview
-interface AsciiMathSymbol {
+
+type AsciiMathSymbol = { am: string; tex: string; rendered?: string }
+| {
   am: string
   tex: string
   rendered?: string
-  placeholder?: string
+  placeholder: string
+  fill: Array<string>
 }
 
 export class SymbolSearchModal extends SuggestModal<AsciiMathSymbol> {
-  private callback: (sym: string) => void
+  private callback: (sym: AsciiMathSymbol) => void
 
   // Returns all available suggestions.
   getSuggestions(query: string): AsciiMathSymbol[] {
@@ -20,13 +23,22 @@ export class SymbolSearchModal extends SuggestModal<AsciiMathSymbol> {
   }
 
   // Renders each suggestion item.
-  renderSuggestion({ am, tex, rendered, placeholder }: AsciiMathSymbol, el: HTMLElement) {
+  renderSuggestion(sym: AsciiMathSymbol, el: HTMLElement) {
+    const { am, tex, rendered } = sym
     el.classList.add('__asciimath-symbol-search-result')
 
     const text = el.createDiv()
-    const amLine = text.createDiv()// text.createEl('div', { text: am })
+    const amLine = text.createDiv()
     amLine.createSpan({ text: am })
-    placeholder && amLine.createSpan({ text: ` ${placeholder}`, cls: '__asciimath-symbol-search-placeholder' })
+
+    if ('placeholder' in sym) {
+      const { placeholder, fill } = sym
+      // build template like `^(a)_(b)`
+      let temp = placeholder
+      fill.forEach((x, i) => temp = temp.replace(`$${i + 1}`, x))
+      amLine.createSpan({ text: ` ${temp}`, cls: '__asciimath-symbol-search-placeholder' })
+    }
+
     text.createEl('small', { text: `LaTeX alternative: ${tex}` })
 
     el.createDiv('__asciimath-symbol-search-preview math', (el) => {
@@ -39,12 +51,12 @@ export class SymbolSearchModal extends SuggestModal<AsciiMathSymbol> {
     })
   }
 
-  onSelected(cb: (sym: string) => void) {
+  onSelected(cb: (sym: AsciiMathSymbol) => void) {
     this.callback = cb
   }
 
   // Perform action on the selected suggestion.
   onChooseSuggestion(sym: AsciiMathSymbol) {
-    this.callback(sym.am)
+    this.callback(sym)
   }
 }

@@ -234,7 +234,44 @@ export default class AsciiMathPlugin extends Plugin {
         const modal = new SymbolSearchModal(this.app)
         modal.setPlaceholder('Start typing AsciiMath or LaTeX symbol name')
         modal.onSelected((sym) => {
-          editor.replaceSelection(sym)
+          const { am } = sym
+          if ('placeholder' in sym) {
+            const { placeholder, fill } = sym
+            const sel = editor.getSelection()
+
+            // build template like `($1) ()()`
+            let tempExceptFirst = placeholder
+            for (let i = 2; i <= fill.length; i++)
+              tempExceptFirst = tempExceptFirst.replace(`$${i}`, '')
+
+            // remove the first dollar
+            const temp = tempExceptFirst.replace('$1', '')
+            if (!sel) {
+              // No selection, then place the cursor at `$1`.
+              const cur = editor.getCursor()
+              const placeholder_a_pos = placeholder.indexOf('$1')
+              const spacesBefore$1 = placeholder.substring(0, placeholder_a_pos).match(/(\$\d+?)/g)?.join('').length || 0
+              editor.replaceSelection(am + temp)
+              editor.setCursor({ line: cur.line, ch: cur.ch + am.length + placeholder_a_pos - spacesBefore$1 })
+            }
+            else {
+              // There is a selection, then replace `$1` with the selection, and put the cursor at `$2`.
+              const placeholder_b_pos = placeholder.indexOf('$2')
+              const cur = editor.getCursor('to')
+              editor.replaceSelection(am + tempExceptFirst.replace('$1', sel))
+              if (placeholder_b_pos !== -1) {
+                // Calculate how many `(\$\d+)`s are before `$2`,
+                // then we should move the cursor to the location of `$2`.
+                // This code is specially for `pp` and `dd` syntax sugar, which covers common cases.
+                const spacesBefore$2 = placeholder.substring(0, placeholder_b_pos).match(/(\$\d+?)/g)?.join('').length || 0
+                editor.setCursor({ line: cur.line, ch: cur.ch + am.length + placeholder_b_pos - spacesBefore$2 })
+              }
+              else { editor.setCursor({ line: cur.line, ch: cur.ch + am.length + placeholder.length - 2 }) }
+            }
+          }
+          else {
+            editor.replaceSelection(am)
+          }
         })
         modal.open()
       },
