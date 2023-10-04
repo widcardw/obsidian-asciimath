@@ -1,4 +1,6 @@
+import type { App } from 'obsidian'
 import { SuggestModal, finishRenderMath, renderMath } from 'obsidian'
+import type { AsciiMath } from 'asciimath-parser'
 import symbols from './symbols.json'
 
 // First is the AsciiMath symbol, second is LaTeX alternative
@@ -14,7 +16,15 @@ type AsciiMathSymbol = { am: string; tex: string; rendered?: string }
 }
 
 export class SymbolSearchModal extends SuggestModal<AsciiMathSymbol> {
+  private sel: string
+  private am: AsciiMath
   private callback: (sym: AsciiMathSymbol) => void
+
+  constructor(app: App, sel: string, am: AsciiMath) {
+    super(app)
+    this.sel = sel
+    this.am = am
+  }
 
   // Returns all available suggestions.
   getSuggestions(query: string): AsciiMathSymbol[] {
@@ -31,11 +41,21 @@ export class SymbolSearchModal extends SuggestModal<AsciiMathSymbol> {
     const amLine = text.createDiv()
     amLine.createSpan({ text: am })
 
+    let toBeRendered = typeof rendered !== 'undefined' ? rendered : tex
+
     if ('placeholder' in sym) {
       const { placeholder, fill } = sym
       // build template like `^(a)_(b)`
       let temp = placeholder
-      fill.forEach((x, i) => temp = temp.replace(`$${i + 1}`, x))
+      if (this.sel) {
+        temp = temp.replace('$1', this.sel)
+        toBeRendered = toBeRendered.replace('$1', this.am.toTex(this.sel))
+      }
+
+      fill.forEach((x, i) => {
+        temp = temp.replace(`$${i + 1}`, x)
+        toBeRendered = toBeRendered.replaceAll(`$${i + 1}`, x)
+      })
       amLine.createSpan({ text: ` ${temp}`, cls: '__asciimath-symbol-search-placeholder' })
     }
 
@@ -44,7 +64,7 @@ export class SymbolSearchModal extends SuggestModal<AsciiMathSymbol> {
     el.createDiv('__asciimath-symbol-search-preview math', (el) => {
       el.innerHTML = `
         <mjx-container class="MathJax" jax="CHTML">
-        ${renderMath(typeof rendered !== 'undefined' ? rendered : tex, false).innerHTML}
+        ${renderMath(toBeRendered, false).innerHTML}
         </mjx-container>
       `
       finishRenderMath()
