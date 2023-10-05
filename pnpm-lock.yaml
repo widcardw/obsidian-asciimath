@@ -27,8 +27,8 @@ devDependencies:
     specifier: 5.29.0
     version: 5.29.0(eslint@8.35.0)(typescript@4.7.4)
   asciimath-parser:
-    specifier: ^0.6.2
-    version: 0.6.2
+    specifier: ^0.6.3
+    version: 0.6.3
   builtin-modules:
     specifier: 3.3.0
     version: 3.3.0
@@ -680,8 +680,8 @@ packages:
       es-shim-unscopables: 1.0.0
     dev: true
 
-  /asciimath-parser@0.6.2:
-    resolution: {integrity: sha512-uMHvFoTupH96DiTyyXkl196DUlPttIs/SRdp+cU3caIzh6g0zBnSYkU5hrW6FNZT3PpNsCX/BhEH9UzjUUFB8g==}
+  /asciimath-parser@0.6.3:
+    resolution: {integrity: sha512-gRWHioHM09l9w3YLPE4hNcnS1/4cej65AIh5jYMgru/yGdFcXlWvxWQCjxepULy2XmQe4ujE6n5Cdgkaj6gzjw==}
     dev: true
 
   /balanced-match@1.0.2:

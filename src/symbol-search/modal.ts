@@ -34,7 +34,7 @@ export class SymbolSearchModal extends SuggestModal<AsciiMathSymbol> {
 
   // Renders each suggestion item.
   renderSuggestion(sym: AsciiMathSymbol, el: HTMLElement) {
-    const { am, tex, rendered } = sym
+    let { am, tex, rendered } = sym
     el.classList.add('__asciimath-symbol-search-result')
 
     const text = el.createDiv()
@@ -46,22 +46,30 @@ export class SymbolSearchModal extends SuggestModal<AsciiMathSymbol> {
     if ('placeholder' in sym) {
       const { placeholder, fill } = sym
       // build template like `^(a)_(b)`
-      let temp = placeholder
+      let template = placeholder
       if (this.sel) {
-        temp = temp.replace('$1', this.sel)
-        toBeRendered = toBeRendered.replace('$1', this.am.toTex(this.sel))
+        // if `am` is embedded LaTeX, then just render the selection as LaTeX, otherwise render the parsed tex.
+        const selToTex = (am === 'tex' || am === 'text') ? this.sel : this.am.toTex(this.sel, { display: false })
+        template = template.replace('$1', this.sel)
+
+        tex = tex.replace('$1', selToTex)
+        toBeRendered = toBeRendered.replace('$1', selToTex)
       }
 
       fill.forEach((x, i) => {
-        temp = temp.replace(`$${i + 1}`, x)
+        template = template.replace(`$${i + 1}`, x)
         toBeRendered = toBeRendered.replaceAll(`$${i + 1}`, x)
+        tex = tex.replaceAll(`$${i + 1}`, x)
       })
-      amLine.createSpan({ text: ` ${temp}`, cls: '__asciimath-symbol-search-placeholder' })
+      amLine.createSpan({ text: ` ${template}`, cls: '__asciimath-symbol-search-placeholder' })
     }
 
     text.createEl('small', { text: `LaTeX alternative: ${tex}` })
 
     el.createDiv('__asciimath-symbol-search-preview math', (el) => {
+      if (am === 'tex')
+        toBeRendered = `tex"${toBeRendered}"`
+
       el.innerHTML = `
         <mjx-container class="MathJax" jax="CHTML">
         ${renderMath(toBeRendered, false).innerHTML}
