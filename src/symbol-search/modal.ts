@@ -72,7 +72,7 @@ export class SymbolSearchModal extends SuggestModal<AsciiMathSymbol> {
 
       el.innerHTML = `
         <mjx-container class="MathJax" jax="CHTML">
-        ${renderMath(toBeRendered, false).innerHTML}
+        ${renderMath(toBeRendered, true).innerHTML}
         </mjx-container>
       `
       finishRenderMath()
