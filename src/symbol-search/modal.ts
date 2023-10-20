@@ -19,21 +19,31 @@ export class SymbolSearchModal extends SuggestModal<AsciiMathSymbol> {
   private sel: string
   private am: AsciiMath
   private callback: (sym: AsciiMathSymbol) => void
+  private renderCount: number
+  private renderMax: number
 
   constructor(app: App, sel: string, am: AsciiMath) {
     super(app)
     this.sel = sel
     this.am = am
+    this.renderCount = 0
+    this.renderMax = 0
   }
 
   // Returns all available suggestions.
   getSuggestions(query: string): AsciiMathSymbol[] {
     query = query.toLowerCase()
-    return symbols.filter(sym => ([sym.am, sym.tex]).some(v => v.toLocaleLowerCase().includes(query))) as AsciiMathSymbol[]
+    const suggestions = symbols.filter(sym => ([sym.am, sym.tex]).some(v => v.toLocaleLowerCase().includes(query))) as AsciiMathSymbol[]
+    // to avoid calling `finishRenderMath` too many times
+    this.renderCount = 0
+    this.renderMax = Math.min(suggestions.length, 100)
+
+    return suggestions
   }
 
   // Renders each suggestion item.
   renderSuggestion(sym: AsciiMathSymbol, el: HTMLElement) {
+    this.renderCount++
     let { am, tex, rendered } = sym
     el.classList.add('__asciimath-symbol-search-result')
 
@@ -75,7 +85,9 @@ export class SymbolSearchModal extends SuggestModal<AsciiMathSymbol> {
         ${renderMath(toBeRendered, true).innerHTML}
         </mjx-container>
       `
-      finishRenderMath()
+      // flush math css when all suggestions are created
+      if (this.renderCount >= this.renderMax)
+        finishRenderMath()
     })
   }
 
