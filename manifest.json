@@ -1,7 +1,7 @@
 {
-	"id": "asciimath",
-	"name": "Obsidian asciimath",
-	"version": "0.7.0",
+	"id": "obsidian-asciimath",
+	"name": "asciimath",
+	"version": "0.7.1",
 	"minAppVersion": "0.15.0",
 	"description": "Add asciimath support for Obsidian.",
 	"author": "widcardw",
