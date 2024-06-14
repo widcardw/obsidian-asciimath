@@ -1,5 +1,5 @@
-function normalizeEscape(escape: string) {
-  return escape.replace(/([$^\\.()[\]{}*?|])/g, '\\$1')
+function normalizeEscape(escape_: string) {
+  return escape_.replace(/([$^\\.()[\]{}*?|])/g, '\\$1')
 }
 
 // This function checks if the given code contains LaTeX code, but it's not AsciiMath embed.

@@ -6,6 +6,7 @@ export class ConfirmModal extends Modal {
   message: string
   confirmHandler: () => void
 
+  // biome-ignore lint/complexity/noUselessConstructor: <explanation>
   constructor(app: App) {
     super(app)
   }
@@ -27,20 +28,20 @@ export class ConfirmModal extends Modal {
 
     new Setting(contentEl).setDesc(this.message)
     new Setting(contentEl)
-      .addButton(btn =>
-        btn
-          .setButtonText('Cancel')
-          .onClick(() => {
-            this.close()
-          }))
-      .addButton(btn =>
+      .addButton((btn) =>
+        btn.setButtonText('Cancel').onClick(() => {
+          this.close()
+        }),
+      )
+      .addButton((btn) =>
         btn
           .setButtonText('Continue')
           .setCta()
           .onClick(() => {
             this.close()
             this.confirmHandler()
-          }))
+          }),
+      )
   }
 
   onClose() {

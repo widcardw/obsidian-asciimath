@@ -16,13 +16,13 @@ import {
   renderMath,
 } from 'obsidian'
 
-import dedent from 'ts-dedent'
 import { AsciiMath, TokenTypes } from 'asciimath-parser'
-import { isLatexCode, normalizeEscape } from './utils'
+import dedent from 'ts-dedent'
+import { ConfirmModal } from './confirm-modal'
 import { inlinePlugin } from './inline'
 import { AsciiMathSettingTab, type AsciiMathSettings } from './settings'
-import { ConfirmModal } from './confirm-modal'
 import { SymbolSearchModal } from './symbol-search/modal'
+import { isLatexCode, normalizeEscape } from './utils'
 
 enum ConvertTarget {
   Asciimath = 'Asciimath',
@@ -42,13 +42,16 @@ const DEFAULT_SETTINGS: AsciiMathSettings = {
 
 function toTex(am: AsciiMath, content: string): string {
   const tex = am.toTex(content)
-  return tex.replace(/(\{|\})(\1+)/g, (...args) => Array(args[2].length + 1).fill(args[1]).join(' '))
+  return tex.replace(/(\{|\})(\1+)/g, (...args) =>
+    Array(args[2].length + 1)
+      .fill(args[1])
+      .join(' '),
+  )
 }
 
 export default class AsciiMathPlugin extends Plugin {
   settings: AsciiMathSettings
   existPrefixes: string[] = []
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   tex2chtml: (source: string, r: { display: boolean }) => any
 
   postProcessors: Map<string, MarkdownPostProcessor> = new Map()
@@ -57,7 +60,10 @@ export default class AsciiMathPlugin extends Plugin {
 
   calcSymbols() {
     return this.settings.customSymbols.map(([k, v]) => {
-      return [k, { type: TokenTypes.Const, tex: v }] as [string, { type: TokenTypes; tex: string }]
+      return [k, { type: TokenTypes.Const, tex: v }] as [
+        string,
+        { type: TokenTypes; tex: string },
+      ]
     })
   }
 
@@ -107,9 +113,8 @@ export default class AsciiMathPlugin extends Plugin {
   registerAsciiMathCodeBlock(prefix: string) {
     this.postProcessors.set(
       prefix,
-      this.registerMarkdownCodeBlockProcessor(
-        prefix,
-        (src, el, ctx) => this.postProcessor(prefix, src, el, ctx),
+      this.registerMarkdownCodeBlockProcessor(prefix, (src, el, ctx) =>
+        this.postProcessor(prefix, src, el, ctx),
       ),
     )
   }
@@ -142,22 +147,33 @@ export default class AsciiMathPlugin extends Plugin {
 
     // Deprecation warning for the inline math syntax
     this.app.workspace.on('file-open', async (file) => {
-      if (!file || this.settings.disableDeprecationWarning)
-        return
+      if (!file || this.settings.disableDeprecationWarning) return
 
       const content = await this.app.vault.read(file)
-      const [open, close] = Object.values(this.settings.inline).map(normalizeEscape)
+      const [open, close] = Object.values(this.settings.inline).map(
+        normalizeEscape,
+      )
       const inlineReg = new RegExp(`${open}(.*?)${close}`, 'g')
       if (inlineReg.test(content)) {
-        new Notice(dedent`
+        new Notice(
+          dedent`
           Obsidian AsciiMath:
 
           Inline math with single backticks is deprecated. Refer to the plugin description to fix this issue.
           You also can disable this warning in the plugin settings.
 
           Click here to dismiss this message.
-        `, 0)
+        `,
+          0,
+        )
       }
+    })
+
+    this.addCommand({
+      id: 'asciimath-insert-symbol',
+      icon: 'sigma',
+      name: 'View AsciiMath symbols',
+      editorCallback: this.modalCallback(),
     })
 
     // This adds an editor command that can perform some operation on the current editor instance
@@ -165,22 +181,24 @@ export default class AsciiMathPlugin extends Plugin {
       id: 'insert-asciimath-block',
       name: 'Insert asciimath block',
       editorCallback: (editor: Editor, _view: MarkdownView) => {
-        editor.replaceSelection(`\`\`\`${this.settings.blockPrefix[0] || 'asciimath'}\n${editor.getDoc().getSelection()}\n\`\`\``)
+        editor.replaceSelection(
+          `\`\`\`${this.settings.blockPrefix[0] || 'asciimath'}\n${editor
+            .getDoc()
+            .getSelection()}\n\`\`\``,
+        )
         const cursor = editor.getCursor()
         editor.setCursor(cursor.line - 1)
       },
     })
 
     this.addCommand({
-      id: 'insert-asciimath-inline',
-      name: 'Insert asciimath inline (deprecated)',
-      callback: () => {
-        const modal = new Modal(this.app)
-        modal.titleEl.setText('This command is deprecated')
-
-        new Setting(modal.contentEl).setName('It is advised to convert your old AsciiMath blocks to new syntax using "Update old AsciiMath" commands and proceed using default obsidian dollar-sign blocks with AsciiMath syntax')
-
-        modal.open()
+      id: 'convert-selected-to-latex',
+      name: 'Convert exact selection into LaTeX',
+      editorCallback: (editor: Editor, _view: MarkdownView) => {
+        const cursorStart = editor.getCursor('from')
+        const cursorEnd = editor.getCursor('to')
+        const amCode = editor.getSelection()
+        editor.replaceRange(this.AM.toTex(amCode), cursorStart, cursorEnd)
       },
     })
 
@@ -224,13 +242,6 @@ export default class AsciiMathPlugin extends Plugin {
         which is more convenient to use.
         THIS ACTION CANNOT BE UNDONE.`,
       ),
-    })
-
-    this.addCommand({
-      id: 'asciimath-insert-symbol',
-      icon: 'sigma',
-      name: 'Insert AsciiMath symbol',
-      editorCallback: this.modalCallback(),
     })
 
     // TODO: Should be removed in favor of default math blocks
@@ -277,15 +288,21 @@ export default class AsciiMathPlugin extends Plugin {
           // remove the first dollar
           const temp = tempExceptFirst.replace('$1', '')
           if (!sel) {
-          // No selection, then place the cursor at `$1`.
+            // No selection, then place the cursor at `$1`.
             const cur = editor.getCursor()
             const placeholder_a_pos = placeholder.indexOf('$1')
-            const spacesBefore$1 = placeholder.substring(0, placeholder_a_pos).match(/(\$\d+?)/g)?.join('').length || 0
+            const spacesBefore$1 =
+              placeholder
+                .substring(0, placeholder_a_pos)
+                .match(/(\$\d+?)/g)
+                ?.join('').length || 0
             editor.replaceSelection(am + temp)
-            editor.setCursor({ line: cur.line, ch: cur.ch + am.length + placeholder_a_pos - spacesBefore$1 })
-          }
-          else {
-          // There is a selection, then replace `$1` with the selection, and put the cursor at `$2`.
+            editor.setCursor({
+              line: cur.line,
+              ch: cur.ch + am.length + placeholder_a_pos - spacesBefore$1,
+            })
+          } else {
+            // There is a selection, then replace `$1` with the selection, and put the cursor at `$2`.
             const placeholder_b_pos = placeholder.indexOf('$2')
             const cur = editor.getCursor('to')
             editor.replaceSelection(am + tempExceptFirst.replace('$1', sel))
@@ -303,7 +320,9 @@ export default class AsciiMathPlugin extends Plugin {
                * pp ^ (abc)()
                *           ^^ cursor should be here
                */
-              const $before$2 = placeholder.substring(0, placeholder_b_pos).match(/(\$\d+?)/g)
+              const $before$2 = placeholder
+                .substring(0, placeholder_b_pos)
+                .match(/(\$\d+?)/g)
               const $spacesBefore$2 = $before$2?.join('').length || 0
               // if $1 is located after $2, then the cursor should move back
               /**
@@ -316,13 +335,25 @@ export default class AsciiMathPlugin extends Plugin {
                * color()(abc)
                *      ^^ cursor should be here, it will be moved back the length of `abc`
                */
-              const $2before$1 = (!$before$2 || !$before$2.includes('$1')) ? sel.length : 0
-              editor.setCursor({ line: cur.line, ch: cur.ch + am.length + placeholder_b_pos - $spacesBefore$2 - $2before$1 })
+              const $2before$1 =
+                !$before$2 || !$before$2.includes('$1') ? sel.length : 0
+              editor.setCursor({
+                line: cur.line,
+                ch:
+                  cur.ch +
+                  am.length +
+                  placeholder_b_pos -
+                  $spacesBefore$2 -
+                  $2before$1,
+              })
+            } else {
+              editor.setCursor({
+                line: cur.line,
+                ch: cur.ch + am.length + placeholder.length - 2,
+              })
             }
-            else { editor.setCursor({ line: cur.line, ch: cur.ch + am.length + placeholder.length - 2 }) }
           }
-        }
-        else {
+        } else {
           editor.replaceSelection(am)
         }
       })
@@ -332,35 +363,56 @@ export default class AsciiMathPlugin extends Plugin {
 
   // Receive the parameter and judge whether to convert to LaTeX (target: Tex) or remain as AsciiMath (target: Asciimath)
   actionConvertActiveFile(target: ConvertTarget, message: string) {
-    return async () => new ConfirmModal(this.app)
-      .setMessage(message)
-      .onConfirm(async () => {
-        const file = this.app.workspace.getActiveFile()
-        // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
-        const { block, inline } = await this.convertAsciiMathInFile(file!, target)
-        new Notice(`Converted ${block} blocks and ${inline} inline formulas.`)
-      })
-      .open()
+    return async () =>
+      new ConfirmModal(this.app)
+        .setMessage(message)
+        .onConfirm(async () => {
+          const file = this.app.workspace.getActiveFile()
+          // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+          const { block, inline } = await this.convertAsciiMathInFile(
+            file!,
+            target,
+          )
+          new Notice(`Converted ${block} blocks and ${inline} inline formulas.`)
+        })
+        .open()
   }
 
   // Receive the parameter and judge whether to convert to LaTeX (target: Tex) or remain as AsciiMath (target: Asciimath)
   actionConvertEntireVault(target: ConvertTarget, message: string) {
-    return async () => new ConfirmModal(this.app)
-      .setMessage(message)
-      .onConfirm(async () => {
-        // convert all the asciimath formulas in vault
-        const allConvertionRes = await Promise.all(this.app.vault.getMarkdownFiles().map(async (f) => {
-          const convertionRes = await this.convertAsciiMathInFile(f, target)
-          return { ...convertionRes, hasAsciimath: convertionRes.block || convertionRes.inline }
-        }))
-        // calculate number of blocks and inline ones that converted in files
-        const { block, inline, fileNum } = allConvertionRes.reduce((x, y) => {
-          return { block: x.block + y.block, inline: x.inline + y.inline, fileNum: x.fileNum + y.hasAsciimath }
-        }, { block: 0, inline: 0, fileNum: 0 })
+    return async () =>
+      new ConfirmModal(this.app)
+        .setMessage(message)
+        .onConfirm(async () => {
+          // convert all the asciimath formulas in vault
+          const allConvertionRes = await Promise.all(
+            this.app.vault.getMarkdownFiles().map(async (f) => {
+              const convertionRes = await this.convertAsciiMathInFile(f, target)
+              return {
+                ...convertionRes,
+                hasAsciimath: convertionRes.block || convertionRes.inline,
+              }
+            }),
+          )
+          // calculate number of blocks and inline ones that converted in files
+          const { block, inline, fileNum } = allConvertionRes.reduce(
+            (x, y) => {
+              return {
+                block: x.block + y.block,
+                inline: x.inline + y.inline,
+                fileNum: x.fileNum + y.hasAsciimath,
+              }
+            },
+            { block: 0, inline: 0, fileNum: 0 },
+          )
 
-        new Notice(`Converted ${block} blocks and ${inline} inline formulas in ${fileNum} file${fileNum > 1 ? 's' : ''}.`)
-      })
-      .open()
+          new Notice(
+            `Converted ${block} blocks and ${inline} inline formulas in ${fileNum} file${
+              fileNum > 1 ? 's' : ''
+            }.`,
+          )
+        })
+        .open()
   }
 
   // This function reads raw text from the `file` and then replaces AsciiMath blocks (both display & inline) with
@@ -369,29 +421,42 @@ export default class AsciiMathPlugin extends Plugin {
   async convertAsciiMathInFile(file: TFile, target: ConvertTarget) {
     const convertionRes = { block: 0, inline: 0 }
     let content = await this.app.vault.read(file)
-    const blockReg = new RegExp(`((\`|~){3,})(${this.settings.blockPrefix.join('|')})([\\s\\S]*?)\\n\\1`, 'gm')
-    const [open, close] = Object.values(this.settings.inline).map(normalizeEscape)
+    const blockReg = new RegExp(
+      `((\`|~){3,})(${this.settings.blockPrefix.join('|')})([\\s\\S]*?)\\n\\1`,
+      'gm',
+    )
+    const [open, close] = Object.values(this.settings.inline).map(
+      normalizeEscape,
+    )
     const inlineReg = new RegExp(`${open}(.*?)${close}`, 'g')
 
     try {
       const blockIterator = content.matchAll(blockReg)
       let match: IteratorResult<RegExpMatchArray>
-      // eslint-disable-next-line no-cond-assign
+
+      // biome-ignore lint/suspicious/noAssignInExpressions: <explanation>
       while (!(match = blockIterator.next()).done) {
         const block = match.value[0]
         const blockContent = match.value[4]
-        const innerContent = target === ConvertTarget.Tex ? toTex(this.AM, blockContent) : blockContent.trim()
+        const innerContent =
+          target === ConvertTarget.Tex
+            ? toTex(this.AM, blockContent)
+            : blockContent.trim()
         // Four dollar signes are needed because '$$' gets replaced with '$' when using JS .replace() method.
         content = content.replace(block, `$$$$\n${innerContent}\n$$$$`)
         convertionRes.block++
       }
 
       const inlineBlockIterator = content.matchAll(inlineReg)
-      // eslint-disable-next-line no-cond-assign
+
+      // biome-ignore lint/suspicious/noAssignInExpressions: <explanation>
       while (!(match = inlineBlockIterator.next()).done) {
         const block = match.value[0]
         const blockContent = match.value[1]
-        const innerContent = target === ConvertTarget.Tex ? toTex(this.AM, blockContent) : blockContent
+        const innerContent =
+          target === ConvertTarget.Tex
+            ? toTex(this.AM, blockContent)
+            : blockContent
         // innerContent is trimmed because obsidian recognizes inline blocks only when code there's no space around the code.
         // $ code $ -> not a math block
         // $code$ -> math block
@@ -400,8 +465,7 @@ export default class AsciiMathPlugin extends Plugin {
       }
 
       await this.app.vault.modify(file, content)
-    }
-    catch (e) {
+    } catch (e) {
       new Notice(String(e))
     }
     return convertionRes
@@ -409,21 +473,23 @@ export default class AsciiMathPlugin extends Plugin {
 
   // Process formulas in reading mode
   // TODO: Should be removed in favor of inline math blocks
-  async postProcessorInline(el: HTMLElement, _ctx: MarkdownPostProcessorContext) {
+  async postProcessorInline(
+    el: HTMLElement,
+    _ctx: MarkdownPostProcessorContext,
+  ) {
     const nodeList = el.querySelectorAll('code')
-    if (!nodeList.length)
-      return
+    if (!nodeList.length) return
     for (let i = 0; i < nodeList.length; i++) {
       const node = nodeList.item(i)
-      if (node.className.trim())
-        continue
+      if (node.className.trim()) continue
       let { open, close } = this.settings.inline
       open = open.slice(1)
       close = close.substring(0, close.length - 1)
-      const regex = new RegExp(`^${normalizeEscape(open)}(.*?)${normalizeEscape(close)}$`)
+      const regex = new RegExp(
+        `^${normalizeEscape(open)}(.*?)${normalizeEscape(close)}$`,
+      )
       const matches = node.innerText.match(regex)
-      if (!matches)
-        continue
+      if (!matches) continue
       const mathEl = renderMath(matches[1], false)
       finishRenderMath()
       node.replaceWith(mathEl)
