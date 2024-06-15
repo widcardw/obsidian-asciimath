@@ -198,7 +198,29 @@ export default class AsciiMathPlugin extends Plugin {
         const cursorStart = editor.getCursor('from')
         const cursorEnd = editor.getCursor('to')
         const amCode = editor.getSelection()
-        editor.replaceRange(this.AM.toTex(amCode), cursorStart, cursorEnd)
+        const doConvert = () =>
+          editor.replaceRange(this.AM.toTex(amCode), cursorStart, cursorEnd)
+
+        if (amCode.length > 500) {
+          new ConfirmModal(this.app)
+            .setMessage(
+              dedent`The selection is over 500 chars.
+                     Please confirm that you have selected the exact AsciiMath expression.
+                     Click the Continue button to convert though.`,
+            )
+            .onConfirm(doConvert)
+            .open()
+        } else if (isLatexCode(amCode)) {
+          new ConfirmModal(this.app)
+            .setMessage(
+              dedent`The selection may be already LaTeX.
+                   Click the Continue buttom to convert though.`,
+            )
+            .onConfirm(doConvert)
+            .open()
+        } else {
+          doConvert()
+        }
       },
     })
 
