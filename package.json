@@ -1,6 +1,6 @@
 {
   "name": "obsidian-asciimath",
-  "version": "0.7.5",
+  "version": "0.7.6",
   "description": "Add asciimath support for Obsidian.",
   "main": "main.js",
   "scripts": {
@@ -13,12 +13,12 @@
   "author": "",
   "license": "MIT",
   "devDependencies": {
-    "@biomejs/biome": "^1.8.1",
+    "@biomejs/biome": "^2.1.4",
     "@codemirror/language": "6.3.0",
     "@codemirror/state": "6.1.2",
     "@codemirror/view": "6.4.1",
-    "@types/node": "^20.14.2",
-    "asciimath-parser": "^0.6.5",
+    "@types/node": "^20.19.10",
+    "asciimath-parser": "^0.6.8",
     "builtin-modules": "3.3.0",
     "esbuild": "0.14.47",
     "obsidian": "latest",

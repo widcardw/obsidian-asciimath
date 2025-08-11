@@ -10,7 +10,4 @@ function isLatexCode(code: string): boolean {
   return latexRegex.test(code) && !texEmbedRegex.test(code)
 }
 
-export {
-  normalizeEscape,
-  isLatexCode,
-}
+export { normalizeEscape, isLatexCode }

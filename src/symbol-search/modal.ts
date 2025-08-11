@@ -6,14 +6,15 @@ import symbols from './symbols.json'
 // First is the AsciiMath symbol, second is LaTeX alternative
 // The third element is rendered as a preview
 
-type AsciiMathSymbol = { am: string; tex: string; rendered?: string }
-| {
-  am: string
-  tex: string
-  rendered?: string
-  placeholder: string
-  fill: Array<string>
-}
+type AsciiMathSymbol =
+  | { am: string; tex: string; rendered?: string }
+  | {
+      am: string
+      tex: string
+      rendered?: string
+      placeholder: string
+      fill: Array<string>
+    }
 
 export class SymbolSearchModal extends SuggestModal<AsciiMathSymbol> {
   private sel: string
@@ -33,7 +34,9 @@ export class SymbolSearchModal extends SuggestModal<AsciiMathSymbol> {
   // Returns all available suggestions.
   getSuggestions(query: string): AsciiMathSymbol[] {
     query = query.toLowerCase()
-    const suggestions = symbols.filter(sym => ([sym.am, sym.tex]).some(v => v.toLocaleLowerCase().includes(query))) as AsciiMathSymbol[]
+    const suggestions = symbols.filter((sym) =>
+      [sym.am, sym.tex].some((v) => v.toLocaleLowerCase().includes(query)),
+    ) as AsciiMathSymbol[]
     // to avoid calling `finishRenderMath` too many times
     this.renderCount = 0
     this.renderMax = Math.min(suggestions.length, 100)
@@ -59,7 +62,10 @@ export class SymbolSearchModal extends SuggestModal<AsciiMathSymbol> {
       let template = placeholder
       if (this.sel) {
         // if `am` is embedded LaTeX, then just render the selection as LaTeX, otherwise render the parsed tex.
-        const selToTex = (am === 'tex' || am === 'text') ? this.sel : this.am.toTex(this.sel, { display: false })
+        const selToTex =
+          am === 'tex' || am === 'text'
+            ? this.sel
+            : this.am.toTex(this.sel, { display: false })
         template = template.replace('$1', this.sel)
 
         tex = tex.replace('$1', selToTex)
@@ -71,14 +77,16 @@ export class SymbolSearchModal extends SuggestModal<AsciiMathSymbol> {
         toBeRendered = toBeRendered.replaceAll(`$${i + 1}`, x)
         tex = tex.replaceAll(`$${i + 1}`, x)
       })
-      amLine.createSpan({ text: ` ${template}`, cls: '__asciimath-symbol-search-placeholder' })
+      amLine.createSpan({
+        text: ` ${template}`,
+        cls: '__asciimath-symbol-search-placeholder',
+      })
     }
 
     text.createEl('small', { text: `LaTeX alternative: ${tex}` })
 
     el.createDiv('__asciimath-symbol-search-preview math', (el) => {
-      if (am === 'tex')
-        toBeRendered = `tex"${toBeRendered}"`
+      if (am === 'tex') toBeRendered = `tex"${toBeRendered}"`
 
       el.innerHTML = `
         <mjx-container class="MathJax" jax="CHTML">
@@ -86,8 +94,7 @@ export class SymbolSearchModal extends SuggestModal<AsciiMathSymbol> {
         </mjx-container>
       `
       // flush math css when all suggestions are created
-      if (this.renderCount >= this.renderMax)
-        finishRenderMath()
+      if (this.renderCount >= this.renderMax) finishRenderMath()
     })
   }
 
