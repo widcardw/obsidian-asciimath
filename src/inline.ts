@@ -22,7 +22,7 @@ function selectionAndRangeOverlap(
 }
 
 function inlineRender(view: EditorView, plugin: AsciiMathPlugin) {
-  const currentFile = app.workspace.getActiveFile()
+  const currentFile = plugin.app.workspace.getActiveFile()
   if (!currentFile) return
 
   const widgets: Range<Decoration>[] = []
