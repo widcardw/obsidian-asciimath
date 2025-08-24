@@ -260,7 +260,7 @@ export default class AsciiMathPlugin extends Plugin {
       callback: this.actionConvertEntireVault(
         ConvertTarget.Asciimath,
         dedent`
-        This will replace all Asciimath formulas of old syntax (like \`\$ and \$\`) with new syntax (wrapped with dollar signs),
+        This will replace all AsciiMath formulas of old syntax (like \`\$ and \$\`) with new syntax (wrapped with dollar signs),
         which is more convenient to use.
         THIS ACTION CANNOT BE UNDONE.`,
       ),
@@ -390,6 +390,10 @@ export default class AsciiMathPlugin extends Plugin {
         .setMessage(message)
         .onConfirm(async () => {
           const file = this.app.workspace.getActiveFile()
+          if (!file) {
+            new Notice('No active file found.')
+            return
+          }
           // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
           const { block, inline } = await this.convertAsciiMathInFile(
             file!,
@@ -486,6 +490,77 @@ export default class AsciiMathPlugin extends Plugin {
         convertionRes.inline++
       }
 
+      await this.app.vault.modify(file, content)
+    } catch (e) {
+      new Notice(String(e))
+    }
+    return convertionRes
+  }
+
+  async convertAsciiMathInFileNew(file: TFile, target: ConvertTarget) {
+    let content = await this.app.vault.cachedRead(file)
+    const convertionRes = { block: 0, inline: 0 }
+    const inlineRegex = /\$([^$\n]+?)\$/g
+    const codeBlockRegex = new RegExp(
+      `((\`|~){3,})(${this.settings.blockPrefix.join('|')})([\\s\\S]*?)\\n\\1`,
+      'gm',
+    )
+    const dollarBlockRegex = /\$\$([\s\S]+?)\$\$/g
+
+    try {
+      // Transform all code blocks
+      const codeBlockIterator = content.matchAll(codeBlockRegex)
+      let match: IteratorResult<RegExpMatchArray>
+
+      while (!(match = codeBlockIterator.next()).done) {
+        const block = match.value[0]
+        const blockContent = match.value[4]
+        const innerContent = target === ConvertTarget.Tex
+          ? toTex(this.AM, blockContent)
+          : blockContent.trim()
+        
+          content = content.replace(block, `$$$$\n${innerContent}\n$$$$`)
+          convertionRes.block++
+      }
+
+      // Transform all dollar blocks
+      const dollarBlockIterator = content.matchAll(dollarBlockRegex)
+      while (!(match = dollarBlockIterator.next()).done) {
+        const block = match.value[0]
+        const blockContent = match.value[1]
+        const innerContent = target === ConvertTarget.Tex
+          ? toTex(this.AM, blockContent)
+          : blockContent.trim()
+        
+          content = content.replace(block, `$$$$\n${innerContent}\n$$$$`)
+          convertionRes.block++
+      }
+
+      // Transform all inline formulars
+      // 保存代码块并替换为占位符
+      const codeBlocks: string[] = [];
+      let processedContent = content.replace(/```[\s\S]*?```/g, (match) => {
+        const placeholder = `__CODE_BLOCK_${codeBlocks.length}__`;
+        codeBlocks.push(match);
+        return placeholder;
+      });
+      
+      const inlineIterator = processedContent.matchAll(inlineRegex)
+      while (!(match = inlineIterator.next()).done) {
+        const block = match.value[0]
+        const blockContent = match.value[1]
+        const innerContent = target === ConvertTarget.Tex
+          ? toTex(this.AM, blockContent)
+          : blockContent
+        processedContent = processedContent.replace(block, `$$${innerContent.trim()}$$`)
+        convertionRes.inline++
+      }
+      
+      // 恢复代码块内容
+      codeBlocks.forEach((block, index) => {
+        processedContent = processedContent.replace(`__CODE_BLOCK_${index}__`, block);
+      });
+      content = processedContent;
       await this.app.vault.modify(file, content)
     } catch (e) {
       new Notice(String(e))
