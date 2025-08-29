@@ -1,3 +1,7 @@
+/**
+ * @deprecated The inline code plugin is no longer supported
+ */
+
 import { syntaxTree } from '@codemirror/language'
 import type { EditorSelection, Range } from '@codemirror/state'
 import type { DecorationSet, EditorView, ViewUpdate } from '@codemirror/view'

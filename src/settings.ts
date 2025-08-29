@@ -9,10 +9,6 @@ export interface AsciiMathSettings {
   blockPrefix: string[]
   replaceMathBlock: boolean
   disableDeprecationWarning: boolean
-  inline: {
-    open: string
-    close: string
-  }
   customSymbols: RuleType
 }
 
@@ -92,58 +88,6 @@ export class AsciiMathSettingTab extends PluginSettingTab {
       })
 
     new Setting(containerEl)
-      .setHeading()
-      .setName('Inline code math (deprecated)')
-      .setDesc(
-        'These settings will be removed in the next version of the plugin',
-      )
-
-    new Setting(containerEl)
-      .setName('Disable deprecation warning')
-      .setDesc(
-        'Note: ignoring deprecation issues may make the plugin unusable with existing notes in the future.',
-      )
-      .addToggle((toggle) => {
-        toggle
-          .setValue(this.plugin.settings.disableDeprecationWarning)
-          .onChange((v) => {
-            this.plugin.settings.disableDeprecationWarning = v
-          })
-      })
-
-    new Setting(containerEl)
-      .setName('Inline asciimath start')
-      .setDesc(
-        'The leading escape of the inline asciimath formula. It should starts with **only one backtick**.',
-      )
-      .addText((text) =>
-        text
-          .setPlaceholder('`$')
-          .setValue(this.plugin.settings.inline.open)
-          .onChange(
-            debounce((value) => {
-              this.plugin.settings.inline.open = value
-            }, 1000),
-          ),
-      )
-
-    new Setting(containerEl)
-      .setName('Inline asciimath end')
-      .setDesc(
-        'The trailing escape of the inline asciimath formula. It should ends with **only one backtick**.',
-      )
-      .addText((text) =>
-        text
-          .setPlaceholder('$`')
-          .setValue(this.plugin.settings.inline.close)
-          .onChange(
-            debounce((value) => {
-              this.plugin.settings.inline.close = value
-            }, 1000),
-          ),
-      )
-
-    new Setting(containerEl)
       .setName("Don't forget to save and reload settings →")
       .addButton((btn) =>
         btn.setButtonText('Save').onClick(async () => {
@@ -175,19 +119,6 @@ function validateSettings(settings: AsciiMathSettings): {
     return {
       isValid: false,
       message: 'You should add at least 1 block prefix!',
-    }
-  }
-  const { open, close } = settings.inline
-  if (!open.startsWith('`') || open.length <= 1 || open.startsWith('``')) {
-    return {
-      isValid: false,
-      message: 'Invalid inline leading escape!',
-    }
-  }
-  if (!close.endsWith('`') || close.length <= 1 || close.endsWith('``')) {
-    return {
-      isValid: false,
-      message: 'Invalid inline trailing escape!',
     }
   }
   const { customSymbols } = settings

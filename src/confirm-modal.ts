@@ -4,6 +4,7 @@ import { Modal, Setting } from 'obsidian'
 // Confirm modal is used to confirm the action. It'll call onConfirm callback if the action submit button is pressed.
 export class ConfirmModal extends Modal {
   message: string
+  enableDisplayMode: boolean
   confirmHandler: () => void
 
   // biome-ignore lint/complexity/noUselessConstructor: <explanation>
@@ -16,8 +17,13 @@ export class ConfirmModal extends Modal {
     return this
   }
 
-  onConfirm(f: () => void): ConfirmModal {
-    this.confirmHandler = f
+  setEnableDisplayMode(enableDisplayMode: boolean): ConfirmModal {
+    this.enableDisplayMode = enableDisplayMode
+    return this
+  }
+
+  onConfirm(f: (v: boolean) => void): ConfirmModal {
+    this.confirmHandler = () => f(this.enableDisplayMode)
     return this
   }
 
@@ -27,6 +33,16 @@ export class ConfirmModal extends Modal {
     titleEl.setText('Are you sure?')
 
     new Setting(contentEl).setDesc(this.message)
+    new Setting(contentEl)
+      .setName('Enable display mode for each formula')
+      .setDesc('This option will insert \\display{ ... } for each formula.')
+      .addToggle((toggle) =>
+        toggle
+          .setValue(this.enableDisplayMode)
+          .onChange((value) => {
+            this.enableDisplayMode = value
+          }),
+      )
     new Setting(contentEl)
       .addButton((btn) =>
         btn.setButtonText('Cancel').onClick(() => {
