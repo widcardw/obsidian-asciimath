@@ -24,8 +24,8 @@ importers:
         specifier: ^20.19.10
         version: 20.19.10
       asciimath-parser:
-        specifier: ^0.6.9
-        version: 0.6.9
+        specifier: ^0.6.10
+        version: 0.6.10
       builtin-modules:
         specifier: 3.3.0
         version: 3.3.0
@@ -130,8 +130,8 @@ packages:
   '@types/tern@0.23.4':
     resolution: {integrity: sha512-JAUw1iXGO1qaWwEOzxTKJZ/5JxVeON9kvGZ/osgZaJImBnyjyn0cjovPsf6FNLmyGY8Vw9DoXZCMlfMkMwHRWg==}
 
-  asciimath-parser@0.6.9:
-    resolution: {integrity: sha512-9xhf6WqH0e3IzolVRZQ7+MqkBNT9YM2nnmiTKHoylk+m329Hs0883pV4Uz4J1dxxzocnL41BHZvylnEQwg2HxQ==}
+  asciimath-parser@0.6.10:
+    resolution: {integrity: sha512-U13okp+jiMLmDELT0DQ5sUX090E3mbOMDDHPSiozwevn3u+Y+Zr3Q90y3rBqxrJJJMRmnDVYT00a3MpoyYlabw==}
 
   builtin-modules@3.3.0:
     resolution: {integrity: sha512-zhaCDicdLuWN5UbN5IMnFqNMhNfo919sH85y2/ea+5Yg9TsTkeZxpL+JLbp6cgYFS4sRLp3YV4S6yDuqVWHYOw==}
@@ -370,7 +370,7 @@ snapshots:
     dependencies:
       '@types/estree': 1.0.0
 
-  asciimath-parser@0.6.9: {}
+  asciimath-parser@0.6.10: {}
 
   builtin-modules@3.3.0: {}
 
