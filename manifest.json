@@ -1,7 +1,7 @@
 {
 	"id": "obsidian-asciimath",
 	"name": "Asciimath",
-	"version": "0.8.2",
+	"version": "0.8.3",
 	"minAppVersion": "0.15.0",
 	"description": "Add asciimath support for your vault.",
 	"author": "widcardw",
