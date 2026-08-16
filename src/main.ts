@@ -14,7 +14,6 @@ import {
 import { AsciiMath, TokenTypes } from 'asciimath-parser'
 import { AsciiMathSettingTab, type AsciiMathSettings } from './settings'
 import { isLatexCode } from './utils'
-import { createModalInstance } from './symbol-search/modal-instance'
 import { initCommands } from './commands'
 
 const DEFAULT_SETTINGS: AsciiMathSettings = {
@@ -25,13 +24,13 @@ const DEFAULT_SETTINGS: AsciiMathSettings = {
 }
 
 export default class AsciiMathPlugin extends Plugin {
-  settings: AsciiMathSettings
+  settings: AsciiMathSettings = { ...DEFAULT_SETTINGS }
   existPrefixes: string[] = []
-  tex2chtml: (source: string, r: { display: boolean }) => any
+  tex2chtml!: (source: string, r: { display: boolean }) => HTMLElement
 
   postProcessors: Map<string, MarkdownPostProcessor> = new Map()
 
-  AM: AsciiMath
+  AM!: AsciiMath
 
   calcSymbols() {
     return this.settings.customSymbols.map(([k, v]) => {
@@ -43,9 +42,7 @@ export default class AsciiMathPlugin extends Plugin {
   }
 
   onunload() {
-    // eslint-disable-next-line no-console
-    console.log('Obsidian asciimath unloaded')
-
+    console.log('Unloading AsciiMath plugin...')
     // Resetting mathjax rendering function to default
     MathJax.tex2chtml = this.tex2chtml
 
@@ -102,10 +99,14 @@ export default class AsciiMathPlugin extends Plugin {
   ) {
     const mathEl = renderMath(src, true)
     el.appendChild(mathEl)
-    finishRenderMath()
+    void finishRenderMath()
   }
 
-  async onload() {
+  onload() {
+    void this.init()
+  }
+
+  private async init() {
     await this.loadSettings()
 
     await loadMathJax()
@@ -125,7 +126,7 @@ export default class AsciiMathPlugin extends Plugin {
     // TODO: Should be removed in favor of default math blocks
     this.postProcessors = new Map()
     // register code block processors
-    this.app.workspace.onLayoutReady(async () => {
+    this.app.workspace.onLayoutReady(() => {
       this.settings.blockPrefix.forEach((prefix) => {
         // console.log(prefix)
         this.registerAsciiMathCodeBlock(prefix)
@@ -143,7 +144,6 @@ export default class AsciiMathPlugin extends Plugin {
     // This adds a settings tab so the user can configure various aspects of the plugin
     this.addSettingTab(new AsciiMathSettingTab(this.app, this))
 
-    // eslint-disable-next-line no-console
     console.log('Obsidian asciimath loaded')
   }
 }

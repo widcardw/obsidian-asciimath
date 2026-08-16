@@ -25,7 +25,7 @@ export class AsciiMathSettingTab extends PluginSettingTab {
 
     containerEl.empty()
 
-    containerEl.createEl('h2', { text: 'Settings for asciimath' })
+    new Setting(containerEl).setName('Settings for asciimath').setHeading()
 
     new Setting(containerEl)
       .setName('Code block prefix aliases')

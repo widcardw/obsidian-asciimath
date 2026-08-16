@@ -23,9 +23,6 @@ importers:
       asciimath-parser:
         specifier: ^0.6.11
         version: 0.6.11
-      builtin-modules:
-        specifier: 3.3.0
-        version: 3.3.0
       esbuild:
         specifier: 0.25.5
         version: 0.25.5
@@ -464,10 +461,6 @@ packages:
   asciimath-parser@0.6.11:
     resolution: {integrity: sha512-vA10SkftYf0c+ET0RypTXyx1Bgf4hEkXoFoKClNxCDom1YH2dFqZzOYd6Qv/iziYdI0TbOYtxzL1n1yIM6SZTw==}
 
-  builtin-modules@3.3.0:
-    resolution: {integrity: sha512-zhaCDicdLuWN5UbN5IMnFqNMhNfo919sH85y2/ea+5Yg9TsTkeZxpL+JLbp6cgYFS4sRLp3YV4S6yDuqVWHYOw==}
-    engines: {node: '>=6'}
-
   crelt@1.0.7:
     resolution: {integrity: sha512-aK6BbWfhf4U/wCcLHKPJl/xa6VkVstRaPywWtMKGwuOLc/wZTyQYuoxgvZnNsBvv7Kg3YTBQYYBCggcviQczuA==}
 
@@ -774,8 +767,6 @@ snapshots:
       '@types/estree': 1.0.0
 
   asciimath-parser@0.6.11: {}
-
-  builtin-modules@3.3.0: {}
 
   crelt@1.0.7: {}
 

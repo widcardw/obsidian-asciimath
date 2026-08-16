@@ -1,17 +1,19 @@
 # Obsidian Asciimath
+
 A handy plugin that integrates with default Obsidian math, bringing AsciiMath power to your vault.
 
 ## Table of contents
+
 - [Installation](#install)
 - [Advantages](#advantages)
 - [Features](#features)
-    - [Dollar-sign math integration](#dollar-sign-math-integration)
-    - [Code-block math](#code-block-math)
-    - [Commands](#commands)
-        - [Search & Insert AsciiMath symbol](#select-and-insert-asciimath-symbol)
-        - [Insert math code block](#insert-asciimath-codeblock)
-        - [Convert AsciiMath to LaTeX](#convertion-to-latex)
-        - [Migration commands](#migration-commands)
+  - [Dollar-sign math integration](#dollar-sign-math-integration)
+  - [Code-block math](#code-block-math)
+  - [Commands](#commands)
+    - [Search & Insert AsciiMath symbol](#select-and-insert-asciimath-symbol)
+    - [Insert math code block](#insert-asciimath-codeblock)
+    - [Convert AsciiMath to LaTeX](#convertion-to-latex)
+    - [Migration commands](#migration-commands)
 - [Support](#support)
 - [Development](#development)
 
@@ -26,53 +28,65 @@ A handy plugin that integrates with default Obsidian math, bringing AsciiMath po
 - (Manually) Goto the [release page](https://github.com/widcardw/obsidian-asciimath/releases), download the zip, unzip it and add it to your plugins folder.
 
 # Advantages
+
 [AsciiMath](http://asciimath.org) has simpler syntax compared to LaTeX, which is the default math language for Obsidian. With this plugin, you can easily bring power of AsciiMath to your vault, as well as speed up process of math editing.
 
 > [!NOTE]
 > Some of the rules are not exactly consistent with http://asciimath.org, especially the matrix. For more information, please refer to https://asciimath.widcard.win.
 
-
 # Features
+
 Obsidian AsciiMath ships with set of features that will help to get more productive when writing math in Obsidian.
 
 ### Dollar-sign math integration
+
 This plugin integrates with Obsidian's dollar-sign math blocks. It is fully compatible with your previous notes written in LaTeX.
 
 Just start writing AsciiMath as you would write LaTeX formulas and enjoy simpler syntax.
 
 #### Examples
-Inline math: 
+
+Inline math:
+
 ```text
 $lim_(a->oo) a_n = 0$
 ```
+
 ![](screenshots/inline.png)
 
 Display-style math:
-~~~text
+
+```text
 $$
 sum_(n=1)^oo 1/n^2 = pi^2/6
 $$
-~~~
+```
 
 ![](screenshots/codeblock.png)
 
 ### Code-block math
+
 If you do not want to use dollar-sign math blocks, you can use code-block for AsciiMath.
 
 This will be rendered the same as double dollar sign blocks.
-~~~text
+
+````text
 ```am (or asciimath)
 sum_(n=1)^oo 1/n^2 = pi^2/6
 ```
-~~~
+````
+
 > [!NOTE]
 > Inline math is only available via dollar-sign blocks.
 
 ### Commands
+
 The plugin ships with some handy commands for you:
 
 #### Select and insert AsciiMath symbol
+
 ##### How to use
+
 1. Hit `Ctrl + P`
 2. Search for `Insert AsciiMath symbol`
 3. Hit Enter
@@ -83,13 +97,16 @@ The plugin ships with some handy commands for you:
 > Pro tip: You can assign a hotkey for this command to do this faster. My personal preference is `Ctrl + M`
 
 #### Insert asciimath codeblock.
+
 This will insert [code block](#code-block-math) around current selection.
 
 #### Convertion to LaTeX
+
 - Convert AsciiMath into LaTeX in current file.
 - Convert AsciiMath into LaTeX in the entire vault.
 
 #### Notes update commands
+
 - Update asciimath blocks to new syntax in current file.
 - Update asciimath blocks to new syntax in the entire vault.
 
@@ -102,24 +119,27 @@ This will insert [code block](#code-block-math) around current selection.
 ### Updating old notes
 
 In previous versions of the plugin users had to use special syntax for inline math. This feature is deprecated and will be removed in the future.
+
 > Note: default code blocks with three backticks will be supported as usual.
 
 New syntax integrates with default Obsidian [math blocks](https://help.obsidian.md/Editing+and+formatting/Advanced+formatting+syntax#Math) (dollar-sign blocks), which fully compatible when using both LaTeX and AsciiMath.
 
 From now on, you should create inline blocks like this:
+
 ```diff
 ++ $<my_ascii_math>$
 instead of
 -- `$ <my_ascii_math> $`
 ```
+
 > For more on new syntax, refer to [this section](#dollar-sign-math-integration)
 
 To prepare your notes for the newer version of the plugin, you must convert your old AsciiMath notes to new syntax. This can be easily done with plugin commands:
+
 - Hit `Ctrl + P` to open up command pallet.
 - Search for "Update old AsciiMath". Choose one of the two available commands by the "obsidian-asciimath" plugin.
 - Confirm the changes.
 - You're good to go!
-
 
 # Development
 

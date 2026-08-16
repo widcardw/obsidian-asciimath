@@ -1,28 +1,28 @@
 name: Node.js build
 
 on:
-    push:
-        branches: ['**']
-    pull_request:
-        branches: ['**']
+  push:
+    branches: ['**']
+  pull_request:
+    branches: ['**']
 
 jobs:
-    build:
-        runs-on: ubuntu-latest
+  build:
+    runs-on: ubuntu-latest
 
-        strategy:
-            matrix:
-                node-version: [22.x, 24.x]
-                # See supported Node.js release schedule at https://nodejs.org/en/about/releases/
+    strategy:
+      matrix:
+        node-version: [22.x, 24.x]
+        # See supported Node.js release schedule at https://nodejs.org/en/about/releases/
 
-        steps:
-            - uses: actions/checkout@v6
-            - name: Install pnpm and Node.js
-              uses: pnpm/setup@v2
-              with:
-                  runtime: node@${{ matrix.node-version }}
-                  cache: true
-                  install: false
-            - run: pnpm install --frozen-lockfile
-            - run: pnpm run build --if-present
-            - run: pnpm run lint
+    steps:
+      - uses: actions/checkout@v6
+      - name: Install pnpm and Node.js
+        uses: pnpm/setup@v2
+        with:
+          runtime: node@${{ matrix.node-version }}
+          cache: true
+          install: false
+      - run: pnpm install --frozen-lockfile
+      - run: pnpm run build --if-present
+      - run: pnpm run lint

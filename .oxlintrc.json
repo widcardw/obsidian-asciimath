@@ -1,7 +1,11 @@
 {
+	"$schema": "./node_modules/oxlint/configuration_schema.json",
 	"ignorePatterns": [
 		"node_modules/**",
 		"main.js",
-		"assets/**"
+		"assets/**",
+		"*.json",
+		"*.yml",
+		"*.yaml"
 	]
 }

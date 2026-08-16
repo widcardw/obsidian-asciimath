@@ -19,7 +19,7 @@ type AsciiMathSymbol =
 export class SymbolSearchModal extends SuggestModal<AsciiMathSymbol> {
   private sel: string
   private am: AsciiMath
-  private callback: (sym: AsciiMathSymbol) => void
+  private callback: (sym: AsciiMathSymbol) => void = () => {}
   private renderCount: number
   private renderMax: number
 
@@ -88,13 +88,15 @@ export class SymbolSearchModal extends SuggestModal<AsciiMathSymbol> {
     el.createDiv('__asciimath-symbol-search-preview math', (el) => {
       if (am === 'tex') toBeRendered = `tex"${toBeRendered}"`
 
-      el.innerHTML = `
-        <mjx-container class="MathJax" jax="CHTML">
-        ${renderMath(toBeRendered, true).innerHTML}
-        </mjx-container>
-      `
+      const container = document.createElement('mjx-container')
+      container.className = 'MathJax'
+      container.setAttribute('jax', 'CHTML')
+      const rendered = renderMath(toBeRendered, true)
+      while (rendered.firstChild) container.appendChild(rendered.firstChild)
+      el.appendChild(container)
+
       // flush math css when all suggestions are created
-      if (this.renderCount >= this.renderMax) finishRenderMath()
+      if (this.renderCount >= this.renderMax) void finishRenderMath()
     })
   }
 

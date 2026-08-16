@@ -3,9 +3,9 @@ import { Modal, Setting } from 'obsidian'
 
 // Confirm modal is used to confirm the action. It'll call onConfirm callback if the action submit button is pressed.
 export class ConfirmModal extends Modal {
-  message: string
-  enableDisplayMode: boolean
-  confirmHandler: () => void
+  message = ''
+  enableDisplayMode = false
+  confirmHandler: () => void | Promise<void> = () => {}
 
   // biome-ignore lint/complexity/noUselessConstructor: <explanation>
   constructor(app: App) {
@@ -22,7 +22,7 @@ export class ConfirmModal extends Modal {
     return this
   }
 
-  onConfirm(f: (v: boolean) => void): ConfirmModal {
+  onConfirm(f: (v: boolean) => void | Promise<void>): ConfirmModal {
     this.confirmHandler = () => f(this.enableDisplayMode)
     return this
   }
@@ -37,11 +37,9 @@ export class ConfirmModal extends Modal {
       .setName('Enable display mode for each formula')
       .setDesc('This option will insert \\display{ ... } for each formula.')
       .addToggle((toggle) =>
-        toggle
-          .setValue(this.enableDisplayMode)
-          .onChange((value) => {
-            this.enableDisplayMode = value
-          }),
+        toggle.setValue(this.enableDisplayMode).onChange((value) => {
+          this.enableDisplayMode = value
+        }),
       )
     new Setting(contentEl)
       .addButton((btn) =>
@@ -55,7 +53,7 @@ export class ConfirmModal extends Modal {
           .setCta()
           .onClick(() => {
             this.close()
-            this.confirmHandler()
+            void this.confirmHandler()
           }),
       )
   }

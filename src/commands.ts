@@ -1,10 +1,10 @@
-import type { Command, Editor, MarkdownView } from "obsidian";
-import { createModalInstance } from "./symbol-search/modal-instance";
-import type AsciiMathPlugin from "./main";
-import { ConfirmModal } from "./confirm-modal";
-import dedent from "ts-dedent";
-import { isLatexCode } from "./utils";
-import { actionConvertActiveFile, actionConvertEntireVault } from "./convertion";
+import type { Command, Editor, MarkdownFileInfo, MarkdownView } from 'obsidian'
+import { createModalInstance } from './symbol-search/modal-instance'
+import type AsciiMathPlugin from './main'
+import { ConfirmModal } from './confirm-modal'
+import dedent from 'ts-dedent'
+import { isLatexCode } from './utils'
+import { actionConvertActiveFile, actionConvertEntireVault } from './convertion'
 
 function initCommands(plugin: AsciiMathPlugin) {
   const commands: Command[] = [
@@ -13,13 +13,16 @@ function initCommands(plugin: AsciiMathPlugin) {
       icon: 'sigma',
       name: 'View AsciiMath symbols',
       editorCallback: (editor) => {
-        createModalInstance(editor)
+        createModalInstance(editor, plugin)
       },
     },
     {
       id: 'insert-asciimath-block',
       name: 'Insert asciimath block',
-      editorCallback: (editor: Editor, _view: MarkdownView) => {
+      editorCallback: (
+        editor: Editor,
+        _ctx: MarkdownView | MarkdownFileInfo,
+      ) => {
         editor.replaceSelection(
           `\`\`\`${plugin.settings.blockPrefix[0] || 'asciimath'}\n${editor
             .getDoc()
@@ -32,7 +35,10 @@ function initCommands(plugin: AsciiMathPlugin) {
     {
       id: 'convert-selected-to-latex',
       name: 'Convert exact selection into LaTeX',
-      editorCallback: (editor: Editor, _view: MarkdownView) => {
+      editorCallback: (
+        editor: Editor,
+        _ctx: MarkdownView | MarkdownFileInfo,
+      ) => {
         const cursorStart = editor.getCursor('from')
         const cursorEnd = editor.getCursor('to')
         const amCode = editor.getSelection()
@@ -76,7 +82,7 @@ function initCommands(plugin: AsciiMathPlugin) {
         plugin,
         'This will replace all AsciiMath formulas with LaTeX math blocks in the entire vault. THIS ACTION CANNOT BE UNDONE.',
       ),
-    }
+    },
   ]
 
   commands.forEach((command) => {

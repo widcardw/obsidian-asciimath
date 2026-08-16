@@ -1,9 +1,10 @@
-import { Editor } from "obsidian"
-import { SymbolSearchModal } from "./modal"
+import { Editor } from 'obsidian'
+import { SymbolSearchModal } from './modal'
+import type AsciiMathPlugin from '../main'
 
-function createModalInstance(editor: Editor) {
+function createModalInstance(editor: Editor, plugin: AsciiMathPlugin) {
   const sel = editor.getSelection()
-  const modal = new SymbolSearchModal(this.app, sel, this.AM)
+  const modal = new SymbolSearchModal(plugin.app, sel, plugin.AM)
   modal.setPlaceholder('Start typing AsciiMath or LaTeX symbol name')
 
   modal.onSelected((sym) => {
@@ -91,6 +92,4 @@ function createModalInstance(editor: Editor) {
   modal.open()
 }
 
-export {
-  createModalInstance
-}
+export { createModalInstance }
