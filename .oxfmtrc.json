@@ -1,0 +1,13 @@
+{
+  "$schema": "./node_modules/oxfmt/configuration_schema.json",
+  "singleQuote": true,
+  "semi": false,
+  "tabWidth": 2,
+  "useTabs": false,
+  "ignorePatterns": [
+    "node_modules/**",
+    "main.js",
+    "package-lock.json",
+    "assets/**"
+  ]
+}

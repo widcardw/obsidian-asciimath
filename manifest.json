@@ -1,9 +1,9 @@
 {
 	"id": "obsidian-asciimath",
-	"name": "asciimath",
+	"name": "Asciimath",
 	"version": "0.8.2",
 	"minAppVersion": "0.15.0",
-	"description": "Add asciimath support for Obsidian.",
+	"description": "Add asciimath support for your vault.",
 	"author": "widcardw",
 	"authorUrl": "https://widcard.win",
 	"isDesktopOnly": false

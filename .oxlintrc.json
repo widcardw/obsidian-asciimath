@@ -1,0 +1,7 @@
+{
+	"ignorePatterns": [
+		"node_modules/**",
+		"main.js",
+		"assets/**"
+	]
+}
