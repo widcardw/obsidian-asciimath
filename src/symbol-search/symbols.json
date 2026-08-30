@@ -1,4 +1,5 @@
 [
+  { "am": "dagger", "tex": "\\dagger" }
   { "am": "alpha", "tex": "\\alpha" },
   { "am": "beta", "tex": "\\beta" },
   { "am": "gamma", "tex": "\\gamma" },
